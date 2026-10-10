@@ -34,12 +34,12 @@ El SQA debe evaluar resultados observables. No debe modificar datos para ocultar
 - Integridad de las tres bases MySQL.
 - Construcción reproducible con Docker Compose.
 - Compilación, pruebas unitarias y flujo de GitHub Actions.
+- Inicio de sesión, vencimiento de sesión y autorización por roles.
 
 ### Fuera del alcance actual
 
 Los siguientes elementos se documentan como brechas y no deben marcarse como aprobados hasta que exista implementación verificable:
 
-- Inicio de sesión y autorización por roles.
 - Recuperación y bloqueo de cuentas.
 - Swagger u OpenAPI.
 - Despliegue público, HTTPS, copias de seguridad y monitoreo.
@@ -198,7 +198,7 @@ Las fechas deben actualizarse si cambian el alcance o la disponibilidad del ambi
 
 | Riesgo | Impacto | Mitigación |
 | --- | --- | --- |
-| No existe autenticación | Las operaciones no están protegidas por rol | No desplegar públicamente y priorizar el módulo |
+| Credenciales de demostración conocidas | Acceso si el entorno se publica sin cambiar secretos | Limitar al entorno local y reemplazar usuarios y claves antes de desplegar |
 | Cobertura automática reducida | Regresiones no detectadas | Automatizar primero los casos críticos |
 | Tres bases independientes | Inconsistencias entre identificadores lógicos | Probar flujos completos y trazabilidad |
 | Credenciales de demostración | Uso accidental fuera del entorno local | Mantener secretos reales fuera del repositorio |

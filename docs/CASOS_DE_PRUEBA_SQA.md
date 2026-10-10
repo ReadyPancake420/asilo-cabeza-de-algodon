@@ -281,12 +281,26 @@
 - **Pasos:** revisar el historial y los archivos publicados buscando `.env`, tokens, claves privadas o contraseñas reales.
 - **Resultado esperado:** solo existen ejemplos ficticios; no hay secretos ni datos reales.
 
-### CP-SEG-002 — Confirmar brecha de autenticación
+### CP-SEG-002 — Rechazar solicitudes sin autenticación
 
 - **Prioridad:** P0
 - **Tipo:** seguridad
-- **Pasos:** abrir la interfaz y llamar las APIs sin credenciales.
-- **Resultado esperado actual:** el acceso es posible porque la autenticación está pendiente. Registrar la brecha y bloquear cualquier despliegue público.
+- **Pasos:** llamar sin encabezado `Authorization` a residentes, referencias y liquidaciones; repetir con un token alterado y con uno vencido.
+- **Resultado esperado:** las API responden `401`; las rutas `/health` y el inicio de sesión continúan disponibles.
+
+### CP-SEG-003 — Aplicar permisos por rol
+
+- **Prioridad:** P0
+- **Tipo:** seguridad y funcional
+- **Pasos:** iniciar sesión con cada cuenta ficticia e intentar una acción autorizada y una prohibida según la matriz de roles.
+- **Resultado esperado:** la acción autorizada funciona; la acción prohibida no aparece en la interfaz y, si se intenta directamente por API, responde `403` sin modificar datos.
+
+### CP-SEG-004 — Proteger credenciales y cerrar sesión
+
+- **Prioridad:** P1
+- **Tipo:** seguridad
+- **Pasos:** revisar que la base no almacene contraseñas legibles; iniciar y cerrar sesión desde la interfaz; reutilizar la pantalla con otra cuenta.
+- **Resultado esperado:** la base contiene hashes `scrypt`; al cerrar sesión se elimina el token de la pestaña y el sistema solicita credenciales nuevamente.
 
 ## Registro resumido de ejecución
 

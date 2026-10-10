@@ -4,7 +4,7 @@ Duración recomendada: 8 a 12 minutos.
 
 ## 1. Introducción — 45 segundos
 
-Abra primero `ABRIR_APLICACION.cmd`. El frontend integral aparecerá como una aplicación independiente. En el menú se encuentran residentes, fichas médicas, citas y referencias, laboratorio, farmacia, gastos médicos, caja, donaciones y reportes. Los puertos 3001 y 3002 son APIs y por eso muestran únicamente JSON.
+Abra primero `ABRIR_APLICACION.cmd`. El frontend integral aparecerá como una aplicación independiente. Inicie sesión con una de las cuentas ficticias y señale que el menú cambia según el rol. En el menú completo se encuentran residentes, fichas médicas, citas y referencias, laboratorio, farmacia, gastos médicos, caja, donaciones y reportes. Los puertos 3001, 3002 y 3003 son APIs y por eso muestran únicamente JSON.
 
 Explique el problema:
 
@@ -23,6 +23,7 @@ Muestre primero el panel general y luego el diagrama del `README.md`. Señale:
 - Los dos microservicios médicos y el backend administrativo tienen un puerto y una base MySQL propios.
 - Pueden compilarse y desplegarse por separado.
 - No comparten tablas; se relacionan por `medicalVisitId`.
+- Los tres servicios validan la misma sesión firmada y aplican permisos aunque se intente llamar la API directamente.
 
 Aclare que gastos y referencias permanecen como microservicios especializados y que residentes, fichas, laboratorio, farmacia y caja consumen el backend administrativo del puerto 3003.
 
@@ -39,7 +40,7 @@ Abra brevemente:
 3. `liquidation.service.ts` para mostrar que se rechazan citas canceladas.
 4. `database/init.sql` para enseñar las tablas de liquidación y renglones.
 
-En Postman ejecute primero **Expense / Preview calculation**. Señale el resultado:
+En Postman ejecute primero **Login - Administracion** y después **Expense / Preview calculation**. Señale el resultado:
 
 ```text
 Q150 consulta + Q175 laboratorio + Q90 farmacia = Q415
@@ -57,15 +58,13 @@ Abra brevemente:
 2. `referral.service.ts` para enseñar asignación, programación y conversión.
 3. `database/init.sql` para mostrar `medical_referrals` y `referral_events`.
 
-En Postman ejecute en orden:
+En Postman ejecute en orden, cambiando de sesión según el rol indicado:
 
-1. Create referral.
-2. Assign nurse.
-3. Foundation schedules appointment.
-4. Mark in transit.
-5. Mark attended.
-6. Convert to medical visit.
-7. Get referral and timeline.
+1. Login - Medico y Create referral.
+2. Login - Coordinacion, Assign nurse y Foundation schedules appointment.
+3. Login - Enfermeria, Mark in transit y Mark attended.
+4. Login - Coordinacion y Convert to medical visit.
+5. Get referral and timeline.
 
 En la última respuesta, despliegue la propiedad `timeline` y explique que la trazabilidad no sobrescribe el pasado: agrega un evento por cada acción.
 
@@ -88,6 +87,7 @@ Resuma:
 - Responsabilidades independientes.
 - Validaciones y reglas de negocio.
 - Persistencia MySQL por servicio.
+- Autenticación y autorización por rol.
 - Despliegue reproducible con Docker Compose.
 - Pruebas unitarias, Postman y curl.
 

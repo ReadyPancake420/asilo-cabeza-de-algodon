@@ -38,6 +38,7 @@ services:
       DB_NAME: ${EXPENSE_DB_NAME:-medical_expenses}
       DB_USER: ${EXPENSE_DB_USER:-expense_user}
       DB_PASSWORD: ${EXPENSE_DB_PASSWORD:-expense_password}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-demo-cabeza-algodon-secret-2026-cambiar}
     ports:
       - "${EXPENSE_SERVICE_PORT:-3001}:3001"
     depends_on:
@@ -89,6 +90,7 @@ services:
       DB_NAME: ${REFERRAL_DB_NAME:-medical_referrals}
       DB_USER: ${REFERRAL_DB_USER:-referral_user}
       DB_PASSWORD: ${REFERRAL_DB_PASSWORD:-referral_password}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-demo-cabeza-algodon-secret-2026-cambiar}
     ports:
       - "${REFERRAL_SERVICE_PORT:-3002}:3002"
     depends_on:
@@ -140,6 +142,8 @@ services:
       DB_NAME: ${ADMIN_DB_NAME:-asilo_administration}
       DB_USER: ${ADMIN_DB_USER:-admin_user}
       DB_PASSWORD: ${ADMIN_DB_PASSWORD:-admin_password}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-demo-cabeza-algodon-secret-2026-cambiar}
+      AUTH_TOKEN_TTL_SECONDS: ${AUTH_TOKEN_TTL_SECONDS:-28800}
     ports:
       - "${ADMIN_SERVICE_PORT:-3003}:3003"
     depends_on:

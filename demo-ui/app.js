@@ -3,6 +3,8 @@ const referralBase = '/referral';
 const adminBase = '/admin';
 
 const state = {
+  token: null,
+  user: null,
   referrals: [],
   liquidations: [],
   selectedReferralId: null,
@@ -11,6 +13,31 @@ const state = {
   workflow: null,
   adminAction: null,
   adminSummary: null
+};
+
+const roleLabels = {
+  MEDICO: 'Médico',
+  ENFERMERIA: 'Enfermería',
+  COORDINACION: 'Coordinación',
+  ADMINISTRACION: 'Administración'
+};
+
+const viewRoles = {
+  expenses: ['COORDINACION', 'ADMINISTRACION'],
+  cash: ['ADMINISTRACION'],
+  reports: ['COORDINACION', 'ADMINISTRACION']
+};
+
+const actionRoles = {
+  resident: ['ADMINISTRACION'],
+  visit: ['MEDICO'],
+  lab: ['MEDICO'],
+  'lab-result': ['ENFERMERIA'],
+  medicine: ['ENFERMERIA'],
+  movement: ['ADMINISTRACION'],
+  payment: ['ADMINISTRACION'],
+  export: ['COORDINACION', 'ADMINISTRACION'],
+  report: ['COORDINACION', 'ADMINISTRACION']
 };
 
 const sectionLabels = {
@@ -135,16 +162,88 @@ function showToast(title, message, error = false) {
 }
 
 async function requestJson(url, options = {}) {
-  const response = await fetch(url, options);
+  const headers = new Headers(options.headers || {});
+  if (state.token && !url.endsWith('/api/v1/auth/login')) headers.set('Authorization', `Bearer ${state.token}`);
+  const response = await fetch(url, { ...options, headers });
   const contentType = response.headers.get('content-type') || '';
   const body = contentType.includes('application/json') ? await response.json() : null;
   if (!response.ok) {
+    if (response.status === 401 && !url.endsWith('/api/v1/auth/login')) endSession('La sesión venció. Ingrese nuevamente.');
     throw new Error(body?.error?.message || `La solicitud no pudo completarse (${response.status})`);
   }
   return body;
 }
 
+function hasRole(...roles) {
+  return Boolean(state.user && roles.includes(state.user.role));
+}
+
+function canView(viewName) {
+  return !viewRoles[viewName] || hasRole(...viewRoles[viewName]);
+}
+
+function canRunAction(action) {
+  return !actionRoles[action] || hasRole(...actionRoles[action]);
+}
+
+function applyRoleAccess() {
+  if (!state.user) return;
+  $$('[data-nav]').forEach((item) => item.classList.toggle('is-role-hidden', !canView(item.dataset.nav)));
+  $$('[data-demo-action]').forEach((item) => item.classList.toggle('is-role-hidden', !canRunAction(item.dataset.demoAction)));
+  $$('[data-open-referral]').forEach((item) => item.classList.toggle('is-role-hidden', !hasRole('MEDICO')));
+  const expenseEditor = $('.expense-layout');
+  if (expenseEditor) expenseEditor.classList.toggle('is-role-hidden', !hasRole('ADMINISTRACION'));
+  $('#metric-expenses').closest('.metric-card')?.classList.toggle('is-role-hidden', !hasRole('COORDINACION', 'ADMINISTRACION'));
+  $('#profile-initials').textContent = initials(state.user.fullName);
+  $('#profile-name').textContent = state.user.fullName;
+  $('#profile-role').textContent = roleLabels[state.user.role] || state.user.role;
+  if (!canView(location.hash.slice(1))) navigate('dashboard');
+}
+
+function endSession(message = '') {
+  state.token = null;
+  state.user = null;
+  sessionStorage.removeItem('asiloToken');
+  $('.app-shell').classList.add('is-locked');
+  $('#login-screen').hidden = false;
+  $('#login-message').textContent = message;
+  $$('.modal').forEach((modal) => modal.open && modal.close());
+}
+
+async function beginSession(token, user) {
+  state.token = token;
+  state.user = user;
+  sessionStorage.setItem('asiloToken', token);
+  $('#login-screen').hidden = true;
+  $('.app-shell').classList.remove('is-locked');
+  $('#login-message').textContent = '';
+  applyRoleAccess();
+  await refreshAll();
+}
+
+async function login(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+  const submit = $('#login-submit');
+  const credentials = Object.fromEntries(new FormData(form));
+  submit.disabled = true;
+  $('#login-message').textContent = 'Validando credenciales…';
+  try {
+    const result = await requestJson(`${adminBase}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(credentials)
+    });
+    await beginSession(result.data.token, result.data.user);
+    showToast('Sesión iniciada', `Acceso de ${roleLabels[result.data.user.role] || result.data.user.role}.`);
+  } catch (error) {
+    $('#login-message').textContent = error.message;
+  } finally {
+    submit.disabled = false;
+  }
+}
+
 function navigate(viewName, updateHash = true) {
+  if (!canView(viewName)) viewName = 'dashboard';
   const view = $(`[data-view="${viewName}"]`);
   if (!view) return;
   $$('.view').forEach((item) => item.classList.toggle('is-active', item === view));
@@ -259,19 +358,29 @@ async function loadAdministration() {
     requestJson(`${adminBase}/api/v1/residents`),
     requestJson(`${adminBase}/api/v1/laboratory-orders`),
     requestJson(`${adminBase}/api/v1/medicines`),
-    requestJson(`${adminBase}/api/v1/cash-movements`),
-    requestJson(`${adminBase}/api/v1/reports/summary`)
+    hasRole('ADMINISTRACION') ? requestJson(`${adminBase}/api/v1/cash-movements`) : Promise.resolve({ data: [] }),
+    hasRole('COORDINACION', 'ADMINISTRACION') ? requestJson(`${adminBase}/api/v1/reports/summary`) : Promise.resolve({ data: null })
   ]);
   replaceItems(residents, residentResult.data);
   replaceItems(laboratoryOrders, laboratoryResult.data);
   replaceItems(medicines, medicineResult.data);
   replaceItems(cashMovements, cashResult.data);
-  state.adminSummary = summaryResult.data;
+  state.adminSummary = summaryResult.data || {
+    residents: { total: residentResult.data.length, hospitalized: residentResult.data.filter((item) => item.status === 'Hospitalizado').length },
+    laboratory: {
+      total: laboratoryResult.data.length,
+      pending: laboratoryResult.data.filter((item) => item.status === 'Pendiente').length,
+      ready: laboratoryResult.data.filter((item) => item.status === 'Resultados listos').length
+    },
+    pharmacy: { total: medicineResult.data.length, lowStock: medicineResult.data.filter((item) => item.stock < item.minimumStock).length },
+    cash: { income: 0, expenses: 0 }
+  };
   renderResidents();
   renderLaboratory();
   renderPharmacy();
   renderCash();
   renderAdministrationMetrics();
+  applyRoleAccess();
   const residentExists = residents.some((item) => item.id === state.selectedResidentId);
   if (!residentExists && residents[0]) state.selectedResidentId = residents[0].id;
   if (state.selectedResidentId) await loadMedicalRecord(state.selectedResidentId);
@@ -395,15 +504,15 @@ async function selectReferral(id) {
 
 function referralActionButtons(referral) {
   const buttons = [];
-  if (referral.status === 'PENDING_NURSE_ASSIGNMENT') buttons.push(['nurse', 'Asignar enfermero']);
-  if (referral.status === 'PENDING_FOUNDATION') buttons.push(['schedule', 'Programar cita']);
+  if (referral.status === 'PENDING_NURSE_ASSIGNMENT' && hasRole('COORDINACION')) buttons.push(['nurse', 'Asignar enfermero']);
+  if (referral.status === 'PENDING_FOUNDATION' && hasRole('COORDINACION')) buttons.push(['schedule', 'Programar cita']);
   if (referral.status === 'APPOINTMENT_SCHEDULED') {
-    buttons.push(['transit', 'Iniciar traslado']);
-    buttons.push(['schedule', 'Reprogramar']);
+    if (hasRole('ENFERMERIA')) buttons.push(['transit', 'Iniciar traslado']);
+    if (hasRole('COORDINACION')) buttons.push(['schedule', 'Reprogramar']);
   }
-  if (referral.status === 'IN_TRANSIT') buttons.push(['attended', 'Marcar atención']);
-  if (referral.status === 'ATTENDED') buttons.push(['convert', 'Convertir en visita']);
-  if (!['ATTENDED', 'COMPLETED', 'CANCELLED'].includes(referral.status)) buttons.push(['cancel', 'Cancelar']);
+  if (referral.status === 'IN_TRANSIT' && hasRole('ENFERMERIA')) buttons.push(['attended', 'Marcar atención']);
+  if (referral.status === 'ATTENDED' && hasRole('COORDINACION')) buttons.push(['convert', 'Convertir en visita']);
+  if (!['ATTENDED', 'COMPLETED', 'CANCELLED'].includes(referral.status) && hasRole('COORDINACION')) buttons.push(['cancel', 'Cancelar']);
   return buttons.map(([action, label], index) => `<button class="${index === 0 ? 'primary-button' : 'outline-button'} small" type="button" data-workflow="${action}" data-id="${referral.id}">${label}</button>`).join('');
 }
 
@@ -432,6 +541,14 @@ function workflowConfig(action) {
 }
 
 function openWorkflow(action, id) {
+  const allowedRoles = {
+    nurse: ['COORDINACION'], schedule: ['COORDINACION'], convert: ['COORDINACION'], cancel: ['COORDINACION'],
+    transit: ['ENFERMERIA'], attended: ['ENFERMERIA']
+  };
+  if (!hasRole(...(allowedRoles[action] || []))) {
+    showToast('Acción no permitida', 'Su rol no tiene permiso para realizar este cambio.', true);
+    return;
+  }
   const config = workflowConfig(action);
   if (!config) return;
   state.workflow = { action, id: Number(id) };
@@ -728,7 +845,9 @@ async function submitAdminForm(event) {
 async function refreshAll(showMessage = false) {
   const button = $('#refresh-button');
   button.disabled = true;
-  const results = await Promise.allSettled([checkHealth(), loadLiquidations(), loadReferrals(), loadAdministration()]);
+  const tasks = [checkHealth(), loadReferrals(), loadAdministration()];
+  if (canView('expenses')) tasks.push(loadLiquidations());
+  const results = await Promise.allSettled(tasks);
   button.disabled = false;
   if (showMessage) {
     const failed = results.some((item) => item.status === 'rejected');
@@ -737,6 +856,10 @@ async function refreshAll(showMessage = false) {
 }
 
 function handleDemoAction(action, element) {
+  if (!canRunAction(action)) {
+    showToast('Acción no permitida', 'Su rol tiene acceso de consulta, pero no puede modificar este módulo.', true);
+    return;
+  }
   if (action === 'export' || action === 'report') {
     showToast('Reporte preparado', 'Se abrió la vista de impresión para guardar como PDF.');
     setTimeout(() => window.print(), 350);
@@ -750,7 +873,7 @@ function bindEvents() {
     const nav = event.target.closest('[data-nav]');
     if (nav) navigate(nav.dataset.nav);
     const openReferral = event.target.closest('[data-open-referral]');
-    if (openReferral) $('#referral-modal').showModal();
+    if (openReferral && hasRole('MEDICO')) $('#referral-modal').showModal();
     const referral = event.target.closest('[data-referral-id]');
     if (referral) selectReferral(referral.dataset.referralId);
     const dashboardReferral = event.target.closest('[data-dashboard-referral]');
@@ -768,6 +891,14 @@ function bindEvents() {
   $('#menu-button').addEventListener('click', () => { $('#sidebar').classList.add('is-open'); $('#sidebar-scrim').classList.add('is-open'); });
   $('#sidebar-scrim').addEventListener('click', () => { $('#sidebar').classList.remove('is-open'); $('#sidebar-scrim').classList.remove('is-open'); });
   $('#refresh-button').addEventListener('click', () => refreshAll(true));
+  $('#logout-button').addEventListener('click', () => endSession('Sesión cerrada correctamente.'));
+  $('#login-form').addEventListener('submit', login);
+  $('#demo-account').addEventListener('change', (event) => {
+    const option = event.currentTarget.selectedOptions[0];
+    $('#login-username').value = option.value;
+    $('#login-password').value = option.dataset.password || '';
+    $('#login-message').textContent = '';
+  });
   $('#resident-search').addEventListener('input', renderResidents);
   $('#resident-filter').addEventListener('change', renderResidents);
   $('#lab-search').addEventListener('input', renderLaboratory);
@@ -786,7 +917,7 @@ function bindEvents() {
   $$('.modal').forEach((modal) => modal.addEventListener('click', (event) => { if (event.target === modal) modal.close(); }));
 }
 
-function initialize() {
+async function initialize() {
   bindEvents();
   renderResidents();
   renderLaboratory();
@@ -796,9 +927,21 @@ function initialize() {
   addExpenseItem('laboratory', { name: 'Hematología', quantity: 1, unitPrice: 100 });
   addExpenseItem('laboratory', { name: 'Glucosa', quantity: 1, unitPrice: 75 });
   addExpenseItem('pharmacy', { name: 'Losartán 50 mg', quantity: 2, unitPrice: 45 });
+  $('#demo-account').dispatchEvent(new Event('change'));
   const initialView = location.hash.slice(1);
   navigate(sectionLabels[initialView] ? initialView : 'dashboard', false);
-  refreshAll();
+  const savedToken = sessionStorage.getItem('asiloToken');
+  if (!savedToken) {
+    endSession();
+    return;
+  }
+  state.token = savedToken;
+  try {
+    const result = await requestJson(`${adminBase}/api/v1/auth/me`);
+    await beginSession(savedToken, result.data);
+  } catch {
+    endSession('La sesión anterior ya no es válida.');
+  }
 }
 
 initialize();

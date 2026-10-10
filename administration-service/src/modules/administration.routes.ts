@@ -3,6 +3,7 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { z } from 'zod';
 import { pool } from '../config/database';
 import { asyncHandler } from '../shared/asyncHandler';
+import { allowRoles } from '../shared/auth';
 import { AppError } from '../shared/errors';
 
 export const administrationRouter = Router();
@@ -95,7 +96,7 @@ administrationRouter.get('/residents', asyncHandler(async (request, response) =>
   response.json({ data: rows });
 }));
 
-administrationRouter.post('/residents', asyncHandler(async (request, response) => {
+administrationRouter.post('/residents', allowRoles('ADMINISTRACION'), asyncHandler(async (request, response) => {
   const data = residentSchema.parse(request.body);
   const [result] = await pool.execute<ResultSetHeader>(
     `INSERT INTO residents (full_name, birth_date, room, condition_name, family_name, family_phone, status, blood_type, psychopathology, allergies)
@@ -130,7 +131,7 @@ administrationRouter.get('/medical-visits', asyncHandler(async (request, respons
   response.json({ data: rows });
 }));
 
-administrationRouter.post('/medical-visits', asyncHandler(async (request, response) => {
+administrationRouter.post('/medical-visits', allowRoles('MEDICO'), asyncHandler(async (request, response) => {
   const data = visitSchema.parse(request.body);
   const [resident] = await pool.execute<RowDataPacket[]>('SELECT id FROM residents WHERE id = ?', [data.residentId]);
   if (!resident[0]) throw new AppError(404, 'RESIDENT_NOT_FOUND', 'No se encontro el residente');
@@ -152,7 +153,7 @@ administrationRouter.get('/laboratory-orders', asyncHandler(async (_request, res
   response.json({ data: rows });
 }));
 
-administrationRouter.post('/laboratory-orders', asyncHandler(async (request, response) => {
+administrationRouter.post('/laboratory-orders', allowRoles('MEDICO'), asyncHandler(async (request, response) => {
   const data = laboratorySchema.parse(request.body);
   const visitId = data.medicalVisitId === '' || data.medicalVisitId == null ? null : data.medicalVisitId;
   const [result] = await pool.execute<ResultSetHeader>(
@@ -162,7 +163,7 @@ administrationRouter.post('/laboratory-orders', asyncHandler(async (request, res
   response.status(201).json({ data: { id: result.insertId, ...data } });
 }));
 
-administrationRouter.patch('/laboratory-orders/:id/result', asyncHandler(async (request, response) => {
+administrationRouter.patch('/laboratory-orders/:id/result', allowRoles('ENFERMERIA'), asyncHandler(async (request, response) => {
   const id = idSchema.parse(request.params.id);
   const data = laboratoryResultSchema.parse(request.body);
   const [result] = await pool.execute<ResultSetHeader>(
@@ -183,7 +184,7 @@ administrationRouter.get('/medicines', asyncHandler(async (_request, response) =
   response.json({ data: rows });
 }));
 
-administrationRouter.post('/medicines', asyncHandler(async (request, response) => {
+administrationRouter.post('/medicines', allowRoles('ADMINISTRACION'), asyncHandler(async (request, response) => {
   const data = medicineSchema.parse(request.body);
   const [result] = await pool.execute<ResultSetHeader>(
     'INSERT INTO medicines (name, presentation, stock, maximum_stock, unit_price, minimum_stock) VALUES (?, ?, ?, ?, ?, ?)',
@@ -192,7 +193,7 @@ administrationRouter.post('/medicines', asyncHandler(async (request, response) =
   response.status(201).json({ data: { id: result.insertId, ...data } });
 }));
 
-administrationRouter.post('/pharmacy-deliveries', asyncHandler(async (request, response) => {
+administrationRouter.post('/pharmacy-deliveries', allowRoles('ENFERMERIA'), asyncHandler(async (request, response) => {
   const data = deliverySchema.parse(request.body);
   const visitId = data.medicalVisitId === '' || data.medicalVisitId == null ? null : data.medicalVisitId;
   const connection = await pool.getConnection();
@@ -217,7 +218,7 @@ administrationRouter.post('/pharmacy-deliveries', asyncHandler(async (request, r
   }
 }));
 
-administrationRouter.get('/cash-movements', asyncHandler(async (request, response) => {
+administrationRouter.get('/cash-movements', allowRoles('ADMINISTRACION'), asyncHandler(async (request, response) => {
   const type = typeof request.query.type === 'string' ? request.query.type : '';
   const [rows] = await pool.execute<RowDataPacket[]>(
     `SELECT id, DATE_FORMAT(movement_date, '%Y-%m-%d') AS date, concept, source, type, category, amount,
@@ -227,7 +228,7 @@ administrationRouter.get('/cash-movements', asyncHandler(async (request, respons
   response.json({ data: rows });
 }));
 
-administrationRouter.post('/cash-movements', asyncHandler(async (request, response) => {
+administrationRouter.post('/cash-movements', allowRoles('ADMINISTRACION'), asyncHandler(async (request, response) => {
   const data = cashSchema.parse(request.body);
   const residentId = data.residentId === '' || data.residentId == null ? null : data.residentId;
   const [result] = await pool.execute<ResultSetHeader>(
@@ -237,7 +238,7 @@ administrationRouter.post('/cash-movements', asyncHandler(async (request, respon
   response.status(201).json({ data: { id: result.insertId, ...data, residentId } });
 }));
 
-administrationRouter.get('/reports/summary', asyncHandler(async (_request, response) => {
+administrationRouter.get('/reports/summary', allowRoles('COORDINACION', 'ADMINISTRACION'), asyncHandler(async (_request, response) => {
   const [[residentTotals], [labTotals], [stockTotals], [cashTotals]] = await Promise.all([
     pool.execute<RowDataPacket[]>(`SELECT COUNT(*) AS total, SUM(status = 'Hospitalizado') AS hospitalized FROM residents`),
     pool.execute<RowDataPacket[]>(`SELECT COUNT(*) AS total, SUM(status = 'Pendiente') AS pending, SUM(status = 'Resultados listos') AS ready FROM laboratory_orders`),

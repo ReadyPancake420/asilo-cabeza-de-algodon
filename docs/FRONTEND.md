@@ -16,6 +16,7 @@ El frontend representa la aplicación principal descrita en el proyecto final. S
 
 ## Integración actual
 
+- **Conectado a API real:** inicio de sesión y permisos para médico, enfermería, coordinación y administración.
 - **Conectado a API real:** liquidaciones y cálculo de gastos médicos.
 - **Conectado a API real:** creación, consulta y cambios de estado de referencias médicas.
 - **Conectado a API real:** residentes y fichas con historial de visitas.
@@ -34,6 +35,6 @@ El frontend representa la aplicación principal descrita en el proyecto final. S
 
 ## Ejecución
 
-Después de iniciar Docker Desktop, ejecute `ABRIR_APLICACION.cmd`. El acceso construye los contenedores, espera las conexiones y abre el frontend en Microsoft Edge.
+Después de iniciar Docker Desktop, ejecute `ABRIR_APLICACION.cmd`. El acceso construye los contenedores, espera las conexiones y abre el frontend en Microsoft Edge. La primera pantalla solicita una de las cuentas ficticias documentadas en el `README.md`; el menú y las acciones cambian según el rol.
 
 Los datos iniciales son ficticios y se utilizan únicamente para demostrar el funcionamiento. Los nuevos registros creados desde los formularios permanecen en MySQL hasta que se modifiquen o se restablezca el volumen de desarrollo.

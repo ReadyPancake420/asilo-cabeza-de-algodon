@@ -18,14 +18,18 @@ $expenseHealth = Invoke-RestMethod -Uri 'http://localhost:3001/health' -TimeoutS
 $referralHealth = Invoke-RestMethod -Uri 'http://localhost:3002/health' -TimeoutSec 5
 $administrationHealth = Invoke-RestMethod -Uri 'http://localhost:3003/health' -TimeoutSec 5
 $demoPage = Invoke-WebRequest -Uri 'http://localhost:8080' -UseBasicParsing -TimeoutSec 5
-$seedExpense = Invoke-RestMethod -Uri 'http://localhost:3001/api/v1/liquidations/1' -TimeoutSec 5
-$seedReferral = Invoke-RestMethod -Uri 'http://localhost:3002/api/v1/referrals/1' -TimeoutSec 5
-$residents = Invoke-RestMethod -Uri 'http://localhost:3003/api/v1/residents' -TimeoutSec 5
-$medicines = Invoke-RestMethod -Uri 'http://localhost:3003/api/v1/medicines' -TimeoutSec 5
+$loginBody = @{ username = 'administracion.demo'; password = 'DemoAdministracion2026!' } | ConvertTo-Json
+$login = Invoke-RestMethod -Method Post -Uri 'http://localhost:3003/api/v1/auth/login' -ContentType 'application/json' -Body $loginBody -TimeoutSec 5
+$authHeaders = @{ Authorization = "Bearer $($login.data.token)" }
+$seedExpense = Invoke-RestMethod -Uri 'http://localhost:3001/api/v1/liquidations/1' -Headers $authHeaders -TimeoutSec 5
+$seedReferral = Invoke-RestMethod -Uri 'http://localhost:3002/api/v1/referrals/1' -Headers $authHeaders -TimeoutSec 5
+$residents = Invoke-RestMethod -Uri 'http://localhost:3003/api/v1/residents' -Headers $authHeaders -TimeoutSec 5
+$medicines = Invoke-RestMethod -Uri 'http://localhost:3003/api/v1/medicines' -Headers $authHeaders -TimeoutSec 5
 $previewBody = Get-Content -LiteralPath (Join-Path $projectRoot 'examples\expense-preview.json') -Raw
 $preview = Invoke-RestMethod `
   -Method Post `
   -Uri 'http://localhost:3001/api/v1/liquidations/preview' `
+  -Headers $authHeaders `
   -ContentType 'application/json' `
   -Body $previewBody `
   -TimeoutSec 5
@@ -55,6 +59,7 @@ Write-Host 'Pantalla de demostracion: ok'
 Write-Host "API de gastos:        $($expenseHealth.status)"
 Write-Host "API de referencias:   $($referralHealth.status)"
 Write-Host "API administrativa:   $($administrationHealth.status)"
+Write-Host 'Inicio de sesion:      ok'
 Write-Host "Residentes cargados:   $($residents.data.Count)"
 Write-Host "Subtotal:              Q$($preview.data.grossTotal)"
 Write-Host "Descuento fundacion:   Q$($preview.data.discountAmount)"

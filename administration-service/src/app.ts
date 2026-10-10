@@ -4,7 +4,9 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { checkDatabase } from './config/database';
 import { administrationRouter } from './modules/administration.routes';
+import { authRouter } from './modules/auth.routes';
 import { asyncHandler } from './shared/asyncHandler';
+import { authenticate } from './shared/auth';
 import { errorHandler, notFoundHandler } from './shared/errors';
 
 export const app = express();
@@ -25,6 +27,7 @@ app.get('/health', asyncHandler(async (_request, response) => {
   });
 }));
 
-app.use('/api/v1', administrationRouter);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1', authenticate, administrationRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);

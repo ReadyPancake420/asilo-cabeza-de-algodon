@@ -2,17 +2,53 @@
   "info": {
     "_postman_id": "e828d6b8-4b3d-4dca-9cc4-e4172153e417",
     "name": "Asilo Cabeza de Algodon - Microservicios Medicos",
-    "description": "Flujo academico completo de referencias y liquidaciones medicas.",
+    "description": "Flujo academico autenticado de referencias y liquidaciones medicas.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "expenseBaseUrl", "value": "http://localhost:3001" },
     { "key": "referralBaseUrl", "value": "http://localhost:3002" },
+    { "key": "adminBaseUrl", "value": "http://localhost:3003" },
+    { "key": "authToken", "value": "" },
     { "key": "referralId", "value": "2" },
     { "key": "medicalVisitId", "value": "9201" },
     { "key": "liquidationId", "value": "2" }
   ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{authToken}}", "type": "string" }]
+  },
   "item": [
+    {
+      "name": "0 - Authentication",
+      "description": "Ejecute el inicio de sesion del rol que necesite. La coleccion guardara el token automaticamente.",
+      "item": [
+        {
+          "name": "Login - Administracion",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Sesion iniciada', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "if (body.data && body.data.token) pm.collectionVariables.set('authToken', body.data.token);"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"administracion.demo\",\n  \"password\": \"DemoAdministracion2026!\"\n}" }, "url": "{{adminBaseUrl}}/api/v1/auth/login" },
+          "response": []
+        },
+        {
+          "name": "Login - Medico",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Sesion iniciada', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "if (body.data && body.data.token) pm.collectionVariables.set('authToken', body.data.token);"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"medico.demo\",\n  \"password\": \"DemoMedico2026!\"\n}" }, "url": "{{adminBaseUrl}}/api/v1/auth/login" },
+          "response": []
+        },
+        {
+          "name": "Login - Enfermeria",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Sesion iniciada', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "if (body.data && body.data.token) pm.collectionVariables.set('authToken', body.data.token);"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"enfermeria.demo\",\n  \"password\": \"DemoEnfermeria2026!\"\n}" }, "url": "{{adminBaseUrl}}/api/v1/auth/login" },
+          "response": []
+        },
+        {
+          "name": "Login - Coordinacion",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Sesion iniciada', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "if (body.data && body.data.token) pm.collectionVariables.set('authToken', body.data.token);"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"coordinacion.demo\",\n  \"password\": \"DemoCoordinacion2026!\"\n}" }, "url": "{{adminBaseUrl}}/api/v1/auth/login" },
+          "response": []
+        }
+      ]
+    },
     {
       "name": "Health",
       "item": [

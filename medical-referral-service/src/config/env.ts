@@ -8,7 +8,8 @@ const envSchema = z.object({
   DB_PORT: z.coerce.number().int().positive().default(3308),
   DB_NAME: z.string().min(1).default('medical_referrals'),
   DB_USER: z.string().min(1).default('referral_user'),
-  DB_PASSWORD: z.string().min(1).default('referral_password')
+  DB_PASSWORD: z.string().min(1).default('referral_password'),
+  AUTH_JWT_SECRET: z.string().min(32).default('demo-cabeza-algodon-secret-2026-cambiar')
 });
 
 const parsed = envSchema.safeParse(process.env);

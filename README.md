@@ -17,11 +17,11 @@ Funcionan en el prototipo:
 - Referencias médicas y seguimiento de estados.
 - Cálculo y anulación de liquidaciones médicas.
 - Panel e indicadores básicos.
+- Inicio de sesión con contraseñas protegidas y autorización por roles.
+- Usuarios ficticios para médico, enfermería, coordinación y administración.
 
 Pendiente de implementar:
 
-- Inicio de sesión y autorización por roles.
-- Usuarios de prueba funcionales.
 - Especificación OpenAPI y Swagger UI.
 - Pruebas integrales, de seguridad y de aceptación ampliadas.
 - Despliegue público con HTTPS, respaldos y monitoreo.
@@ -52,6 +52,17 @@ Pendiente de implementar:
 3. Ejecuta `ABRIR_APLICACION.cmd`.
 4. Espera a que los contenedores aparezcan como saludables.
 5. Abre [http://localhost:8080](http://localhost:8080).
+
+### Usuarios de prueba
+
+| Rol | Usuario | Contraseña |
+| --- | --- | --- |
+| Médico | `medico.demo` | `DemoMedico2026!` |
+| Enfermería | `enfermeria.demo` | `DemoEnfermeria2026!` |
+| Coordinación | `coordinacion.demo` | `DemoCoordinacion2026!` |
+| Administración | `administracion.demo` | `DemoAdministracion2026!` |
+
+Son cuentas ficticias para la demostración local y las pruebas SQA. La sesión dura ocho horas. La matriz completa de permisos está en [`docs/AUTENTICACION_Y_ROLES.md`](docs/AUTENTICACION_Y_ROLES.md).
 
 Como alternativa, `INICIAR_DEMO.cmd` inicia el entorno sin abrir el navegador.
 
@@ -97,7 +108,7 @@ npm run build
 npm test --if-present
 ```
 
-Los servicios de gastos y referencias incluyen pruebas unitarias. El servicio administrativo actualmente solo dispone de compilación TypeScript.
+Los tres servicios incluyen pruebas automáticas. El servicio administrativo valida firma y vencimiento de sesión, manipulación de tokens y protección de contraseñas.
 
 ## Documentación de la API
 
@@ -110,6 +121,7 @@ Documentación adicional:
 - [`docs/GUIA_VIDEO.md`](docs/GUIA_VIDEO.md)
 - [`docs/PLAN_SQA.md`](docs/PLAN_SQA.md)
 - [`docs/CASOS_DE_PRUEBA_SQA.md`](docs/CASOS_DE_PRUEBA_SQA.md)
+- [`docs/AUTENTICACION_Y_ROLES.md`](docs/AUTENTICACION_Y_ROLES.md)
 
 ## Aseguramiento de calidad
 
@@ -133,9 +145,9 @@ docker-compose.yml            Orquestación del entorno completo
 
 ## Seguridad
 
-Las contraseñas incluidas en `.env.example` y en los valores predeterminados de Docker Compose son exclusivamente para la demostración local. No deben utilizarse en producción.
+Las contraseñas de usuarios ficticios, las claves incluidas en `.env.example` y los valores predeterminados de Docker Compose son exclusivamente para la demostración local. No deben utilizarse en producción.
 
-Los archivos `.env`, claves privadas, dependencias, compilados y datos locales de MySQL están excluidos del repositorio. Antes de un despliegue real deben configurarse secretos independientes, HTTPS, control de acceso, respaldos y auditoría.
+Los archivos `.env`, claves privadas, dependencias, compilados y datos locales de MySQL están excluidos del repositorio. Las contraseñas se almacenan con `scrypt` y las API aceptan únicamente sesiones firmadas. Antes de un despliegue real deben configurarse secretos independientes, HTTPS, rotación de claves, recuperación de cuentas, respaldos y auditoría.
 
 ## Curso
 
