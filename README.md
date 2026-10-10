@@ -122,6 +122,7 @@ Documentación adicional:
 - [`docs/PLAN_SQA.md`](docs/PLAN_SQA.md)
 - [`docs/CASOS_DE_PRUEBA_SQA.md`](docs/CASOS_DE_PRUEBA_SQA.md)
 - [`docs/AUTENTICACION_Y_ROLES.md`](docs/AUTENTICACION_Y_ROLES.md)
+- [`docs/ESTADO_MODULOS_Y_CRONOGRAMA.md`](docs/ESTADO_MODULOS_Y_CRONOGRAMA.md)
 
 ## Aseguramiento de calidad
 
