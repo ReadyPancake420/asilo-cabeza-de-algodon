@@ -1,0 +1,178 @@
+{
+  "info": {
+    "_postman_id": "e828d6b8-4b3d-4dca-9cc4-e4172153e417",
+    "name": "Asilo Cabeza de Algodon - Microservicios Medicos",
+    "description": "Flujo academico completo de referencias y liquidaciones medicas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "expenseBaseUrl", "value": "http://localhost:3001" },
+    { "key": "referralBaseUrl", "value": "http://localhost:3002" },
+    { "key": "referralId", "value": "2" },
+    { "key": "medicalVisitId", "value": "9201" },
+    { "key": "liquidationId", "value": "2" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Expense service health",
+          "request": { "method": "GET", "url": "{{expenseBaseUrl}}/health" },
+          "response": []
+        },
+        {
+          "name": "Referral service health",
+          "request": { "method": "GET", "url": "{{referralBaseUrl}}/health" },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1 - Referral complete flow",
+      "item": [
+        {
+          "name": "1. Create referral",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('medicalVisitId', Date.now().toString());"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Referencia creada', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.id) pm.collectionVariables.set('referralId', body.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": 16,\n  \"specialty\": \"Neurologia\",\n  \"reason\": \"Mareos frecuentes y episodios recientes de perdida de equilibrio\",\n  \"referringDoctorId\": 22,\n  \"referringDoctorName\": \"Dra. Ana Morales\"\n}"
+            },
+            "url": "{{referralBaseUrl}}/api/v1/referrals"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Assign nurse",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nurseId\": 9,\n  \"nurseName\": \"Enfermera Sofia Ramirez\"\n}" },
+            "url": "{{referralBaseUrl}}/api/v1/referrals/{{referralId}}/nurse"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Foundation schedules appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"specialistDoctorId\": 40,\n  \"specialistDoctorName\": \"Dr. Roberto Castillo\",\n  \"scheduledDate\": \"2026-09-20\",\n  \"scheduledTime\": \"09:15\"\n}" },
+            "url": "{{referralBaseUrl}}/api/v1/referrals/{{referralId}}/schedule"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Mark in transit",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"IN_TRANSIT\"\n}" },
+            "url": "{{referralBaseUrl}}/api/v1/referrals/{{referralId}}/status"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Mark attended",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ATTENDED\"\n}" },
+            "url": "{{referralBaseUrl}}/api/v1/referrals/{{referralId}}/status"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Convert to medical visit",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"medicalVisitId\": {{medicalVisitId}}\n}" },
+            "url": "{{referralBaseUrl}}/api/v1/referrals/{{referralId}}/convert-to-visit"
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get referral and timeline",
+          "request": { "method": "GET", "url": "{{referralBaseUrl}}/api/v1/referrals/{{referralId}}" },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2 - Expense calculation",
+      "item": [
+        {
+          "name": "1. Preview calculation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"consultationAmount\": 150,\n  \"foundationDiscountPercent\": 20,\n  \"laboratoryItems\": [\n    { \"name\": \"Hematologia\", \"quantity\": 1, \"unitPrice\": 100 },\n    { \"name\": \"Glucosa\", \"quantity\": 1, \"unitPrice\": 75 }\n  ],\n  \"pharmacyItems\": [\n    { \"name\": \"Losartan\", \"quantity\": 2, \"unitPrice\": 45 }\n  ]\n}" },
+            "url": "{{expenseBaseUrl}}/api/v1/liquidations/preview"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create liquidation for converted visit",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Liquidacion creada', () => pm.response.to.have.status(201));",
+                "const body = pm.response.json();",
+                "if (body.data && body.data.id) pm.collectionVariables.set('liquidationId', body.data.id);"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"medicalVisitId\": {{medicalVisitId}},\n  \"patientId\": 16,\n  \"appointmentStatus\": \"COMPLETED\",\n  \"consultationAmount\": 150,\n  \"foundationDiscountPercent\": 20,\n  \"laboratoryItems\": [\n    { \"name\": \"Hematologia\", \"quantity\": 1, \"unitPrice\": 100 },\n    { \"name\": \"Glucosa\", \"quantity\": 1, \"unitPrice\": 75 }\n  ],\n  \"pharmacyItems\": [\n    { \"name\": \"Losartan\", \"quantity\": 2, \"unitPrice\": 45 }\n  ]\n}" },
+            "url": "{{expenseBaseUrl}}/api/v1/liquidations"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get liquidation",
+          "request": { "method": "GET", "url": "{{expenseBaseUrl}}/api/v1/liquidations/{{liquidationId}}" },
+          "response": []
+        },
+        {
+          "name": "4. Reject cancelled appointment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"medicalVisitId\": 9300,\n  \"patientId\": 16,\n  \"appointmentStatus\": \"CANCELLED\",\n  \"consultationAmount\": 150,\n  \"foundationDiscountPercent\": 20,\n  \"laboratoryItems\": [],\n  \"pharmacyItems\": []\n}" },
+            "url": "{{expenseBaseUrl}}/api/v1/liquidations"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

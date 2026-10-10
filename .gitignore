@@ -1,0 +1,30 @@
+# Dependencias y compilación
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# Registros y archivos temporales
+*.log
+logs/
+tmp/
+temp/
+
+# Datos locales de Docker/MySQL
+mysql-data/
+docker-data/
+
+# Editores y sistema operativo
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+

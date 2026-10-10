@@ -1,0 +1,12 @@
+{
+  "consultationAmount": 150,
+  "foundationDiscountPercent": 20,
+  "laboratoryItems": [
+    { "name": "Hematologia", "quantity": 1, "unitPrice": 100 },
+    { "name": "Glucosa", "quantity": 1, "unitPrice": 75 }
+  ],
+  "pharmacyItems": [
+    { "name": "Losartan", "quantity": 2, "unitPrice": 45 }
+  ]
+}
+

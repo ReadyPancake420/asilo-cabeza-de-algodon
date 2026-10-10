@@ -1,0 +1,187 @@
+name: cabeza-de-algodon-microservices
+
+services:
+  expense-db:
+    image: mysql:8.4
+    container_name: expense-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${EXPENSE_DB_NAME:-medical_expenses}
+      MYSQL_USER: ${EXPENSE_DB_USER:-expense_user}
+      MYSQL_PASSWORD: ${EXPENSE_DB_PASSWORD:-expense_password}
+      MYSQL_ROOT_PASSWORD: ${EXPENSE_DB_ROOT_PASSWORD:-expense_root_password}
+      TZ: America/Guatemala
+    ports:
+      - "${EXPENSE_DB_PORT:-3307}:3306"
+    volumes:
+      - expense-db-data:/var/lib/mysql
+      - ./medical-expense-service/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - asilo-network
+
+  medical-expense-service:
+    build:
+      context: ./medical-expense-service
+    container_name: medical-expense-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: expense-db
+      DB_PORT: 3306
+      DB_NAME: ${EXPENSE_DB_NAME:-medical_expenses}
+      DB_USER: ${EXPENSE_DB_USER:-expense_user}
+      DB_PASSWORD: ${EXPENSE_DB_PASSWORD:-expense_password}
+    ports:
+      - "${EXPENSE_SERVICE_PORT:-3001}:3001"
+    depends_on:
+      expense-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    networks:
+      - asilo-network
+
+  referral-db:
+    image: mysql:8.4
+    container_name: referral-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${REFERRAL_DB_NAME:-medical_referrals}
+      MYSQL_USER: ${REFERRAL_DB_USER:-referral_user}
+      MYSQL_PASSWORD: ${REFERRAL_DB_PASSWORD:-referral_password}
+      MYSQL_ROOT_PASSWORD: ${REFERRAL_DB_ROOT_PASSWORD:-referral_root_password}
+      TZ: America/Guatemala
+    ports:
+      - "${REFERRAL_DB_PORT:-3308}:3306"
+    volumes:
+      - referral-db-data:/var/lib/mysql
+      - ./medical-referral-service/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - asilo-network
+
+  medical-referral-service:
+    build:
+      context: ./medical-referral-service
+    container_name: medical-referral-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DB_HOST: referral-db
+      DB_PORT: 3306
+      DB_NAME: ${REFERRAL_DB_NAME:-medical_referrals}
+      DB_USER: ${REFERRAL_DB_USER:-referral_user}
+      DB_PASSWORD: ${REFERRAL_DB_PASSWORD:-referral_password}
+    ports:
+      - "${REFERRAL_SERVICE_PORT:-3002}:3002"
+    depends_on:
+      referral-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3002/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    networks:
+      - asilo-network
+
+  administration-db:
+    image: mysql:8.4
+    container_name: administration-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${ADMIN_DB_NAME:-asilo_administration}
+      MYSQL_USER: ${ADMIN_DB_USER:-admin_user}
+      MYSQL_PASSWORD: ${ADMIN_DB_PASSWORD:-admin_password}
+      MYSQL_ROOT_PASSWORD: ${ADMIN_DB_ROOT_PASSWORD:-admin_root_password}
+      TZ: America/Guatemala
+    ports:
+      - "${ADMIN_DB_PORT:-3309}:3306"
+    volumes:
+      - administration-db-data:/var/lib/mysql
+      - ./administration-service/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - asilo-network
+
+  administration-service:
+    build:
+      context: ./administration-service
+    container_name: administration-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DB_HOST: administration-db
+      DB_PORT: 3306
+      DB_NAME: ${ADMIN_DB_NAME:-asilo_administration}
+      DB_USER: ${ADMIN_DB_USER:-admin_user}
+      DB_PASSWORD: ${ADMIN_DB_PASSWORD:-admin_password}
+    ports:
+      - "${ADMIN_SERVICE_PORT:-3003}:3003"
+    depends_on:
+      administration-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3003/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    networks:
+      - asilo-network
+
+  demo-ui:
+    build:
+      context: ./demo-ui
+    container_name: medical-demo-ui
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      medical-expense-service:
+        condition: service_healthy
+      medical-referral-service:
+        condition: service_healthy
+      administration-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/health-ui | grep -q ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    networks:
+      - asilo-network
+
+volumes:
+  expense-db-data:
+  referral-db-data:
+  administration-db-data:
+
+networks:
+  asilo-network:
+    driver: bridge

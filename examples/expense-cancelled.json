@@ -1,0 +1,10 @@
+{
+  "medicalVisitId": 9300,
+  "patientId": 16,
+  "appointmentStatus": "CANCELLED",
+  "consultationAmount": 150,
+  "foundationDiscountPercent": 20,
+  "laboratoryItems": [],
+  "pharmacyItems": []
+}
+

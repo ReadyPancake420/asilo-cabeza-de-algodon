@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1e5148" />
+    <meta name="description" content="Sistema para Administración del Asilo de Ancianos Cabeza de Algodón" />
+    <title>Cabeza de Algodón | Sistema administrativo</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <button class="brand" type="button" data-nav="dashboard" aria-label="Ir al inicio">
+          <span class="brand-symbol">+</span>
+          <span><strong>Cabeza de Algodón</strong><small>Administración del asilo</small></span>
+        </button>
+
+        <nav class="main-nav" aria-label="Navegación principal">
+          <p class="nav-group-label">General</p>
+          <button class="nav-item is-active" type="button" data-nav="dashboard">
+            <svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" /></svg><span>Resumen</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="residents">
+            <svg viewBox="0 0 24 24"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 9v-2a7 7 0 0 0-14 0v2h14Zm2-10a3 3 0 1 0 0-6m1 9c3 .5 5 2 5 5v2h-5" /></svg><span>Residentes</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="medical-records">
+            <svg viewBox="0 0 24 24"><path d="M6 3h12v18H6V3Zm3 4h6m-3 4v6m-3-3h6" /></svg><span>Fichas médicas</span>
+          </button>
+
+          <p class="nav-group-label">Atención médica</p>
+          <button class="nav-item" type="button" data-nav="referrals">
+            <svg viewBox="0 0 24 24"><path d="M5 4h9l5 5v11H5V4Zm9 0v5h5M8 13h8M8 17h5" /></svg><span>Citas y referencias</span><em id="nav-referral-count">—</em>
+          </button>
+          <button class="nav-item" type="button" data-nav="laboratory">
+            <svg viewBox="0 0 24 24"><path d="m9 3 6 0m-5 0v6l-5 9c-1 2 0 3 2 3h10c2 0 3-1 2-3l-5-9V3m-6 12h8" /></svg><span>Laboratorio</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="pharmacy">
+            <svg viewBox="0 0 24 24"><path d="M8 4h8v4H8V4Zm-2 6h12v11H6V10Zm3 5h6m-3-3v6" /></svg><span>Farmacia</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="expenses">
+            <svg viewBox="0 0 24 24"><path d="M7 3h10v4H7V3ZM5 9h14v12H5V9Zm4 4h6m-3-3v6" /></svg><span>Gastos médicos</span>
+          </button>
+
+          <p class="nav-group-label">Administración</p>
+          <button class="nav-item" type="button" data-nav="cash">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18v13H3V6Zm4 4h4m5 0h2M7 15h10" /></svg><span>Caja y donaciones</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="reports">
+            <svg viewBox="0 0 24 24"><path d="M4 20V10m6 10V4m6 16v-7m5 7H2" /></svg><span>Reportes</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="connection-card" id="connection-card">
+            <span class="status-dot is-loading"></span>
+            <span><strong>Verificando servicios</strong><small>Conexión con las API</small></span>
+          </div>
+          <p>Proyecto académico · Versión 1.0</p>
+        </div>
+      </aside>
+
+      <div class="sidebar-scrim" id="sidebar-scrim"></div>
+
+      <div class="app-content">
+        <header class="topbar">
+          <button class="icon-button mobile-only" id="menu-button" type="button" aria-label="Abrir menú">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
+          <div class="topbar-title"><small>Sistema para Administración del Asilo</small><strong id="section-label">Panel principal</strong></div>
+          <div class="topbar-actions">
+            <button class="icon-button" id="refresh-button" type="button" title="Actualizar datos" aria-label="Actualizar datos">
+              <svg viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5M18.5 9A7 7 0 0 0 6 7l-2 4m2 4a7 7 0 0 0 12.5 2l1.5-4" /></svg>
+            </button>
+            <div class="profile"><span>AD</span><div><strong>Administración</strong><small>Área operativa</small></div></div>
+          </div>
+        </header>
+
+        <main>
+          <section class="view is-active" data-view="dashboard">
+            <div class="page-heading">
+              <div><p class="eyebrow">Vista general</p><h1>Buenos días, equipo.</h1><p>Esta es la situación actual de los residentes y los servicios del asilo.</p></div>
+              <button class="primary-button compact" type="button" data-open-referral><span>+</span>Nueva referencia</button>
+            </div>
+
+            <div class="health-banner" id="health-banner" role="status">
+              <span class="health-icon"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg></span>
+              <div><strong>Conectando con los servicios médicos</strong><small>Esperando respuesta de gastos y referencias.</small></div>
+              <time id="health-time">Ahora</time>
+            </div>
+
+            <div class="metric-grid">
+              <article class="metric-card"><span class="metric-icon green"><svg viewBox="0 0 24 24"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 9v-2a7 7 0 0 0-14 0v2h14Z" /></svg></span><div><p>Residentes</p><strong id="metric-residents">—</strong><small id="metric-residents-detail">Cargando registros</small></div></article>
+              <article class="metric-card"><span class="metric-icon coral"><svg viewBox="0 0 24 24"><path d="M6 3v3m12-3v3M4 8h16v12H4V8Zm4 4h3v3H8v-3Z" /></svg></span><div><p>Citas programadas</p><strong id="metric-scheduled">—</strong><small>Con la fundación</small></div></article>
+              <article class="metric-card"><span class="metric-icon blue"><svg viewBox="0 0 24 24"><path d="M5 4h9l5 5v11H5V4Zm9 0v5h5" /></svg></span><div><p>Referencias activas</p><strong id="metric-referrals">—</strong><small>En seguimiento</small></div></article>
+              <article class="metric-card"><span class="metric-icon amber"><svg viewBox="0 0 24 24"><path d="M4 6h16v13H4V6Zm4 4h8m-8 4h5" /></svg></span><div><p>Gastos médicos</p><strong id="metric-expenses">—</strong><small>Total registrado</small></div></article>
+            </div>
+
+            <div class="dashboard-grid">
+              <article class="panel activity-panel">
+                <div class="panel-heading"><div><p class="eyebrow">Atención médica</p><h2>Referencias recientes</h2></div><button class="text-button" type="button" data-nav="referrals">Ver todas →</button></div>
+                <div class="activity-list" id="dashboard-referrals"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+              </article>
+              <aside class="panel quick-panel">
+                <div class="panel-heading"><div><p class="eyebrow">Accesos rápidos</p><h2>Operaciones frecuentes</h2></div></div>
+                <button class="quick-action" type="button" data-nav="medical-records"><span class="quick-icon green">+</span><span><strong>Consultar ficha médica</strong><small>Historial, diagnóstico y tratamiento</small></span><b>→</b></button>
+                <button class="quick-action" type="button" data-nav="expenses"><span class="quick-icon coral">Q</span><span><strong>Calcular gastos</strong><small>Consulta, laboratorio y farmacia</small></span><b>→</b></button>
+                <button class="quick-action" type="button" data-nav="cash"><span class="quick-icon blue">↗</span><span><strong>Registrar movimiento</strong><small>Donación, cuota o gasto</small></span><b>→</b></button>
+              </aside>
+            </div>
+
+            <div class="dashboard-grid lower-grid">
+              <article class="panel appointments-panel"><div class="panel-heading"><div><p class="eyebrow">Agenda</p><h2>Próximas atenciones</h2></div></div><div id="dashboard-appointments"></div></article>
+              <article class="panel occupancy-panel"><div class="panel-heading"><div><p class="eyebrow">Ocupación</p><h2>Capacidad del asilo</h2></div></div><div class="donut-wrap"><div class="donut" id="occupancy-donut"><span><strong id="occupancy-percent">—</strong><small>ocupado</small></span></div><div class="legend"><p><i class="green-dot"></i><span id="occupancy-residents">Cargando residentes</span></p><p><i class="gray-dot"></i><span id="occupancy-available">Cargando espacios</span></p></div></div></article>
+            </div>
+          </section>
+
+          <section class="view" data-view="residents">
+            <div class="page-heading"><div><p class="eyebrow">Registro del asilo</p><h1>Residentes</h1><p>Información personal, responsable familiar y condiciones principales.</p></div><button class="primary-button compact" type="button" data-demo-action="resident"><span>+</span>Nuevo residente</button></div>
+            <article class="panel records-panel">
+              <div class="panel-heading responsive"><div><p class="eyebrow">Directorio</p><h2>Personas internas</h2></div><div class="filter-bar"><label class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="resident-search" type="search" placeholder="Buscar por nombre o habitación" /></label><select id="resident-filter"><option value="">Todos los estados</option><option value="Estable">Estable</option><option value="En observación">En observación</option><option value="Hospitalizado">Hospitalizado</option></select></div></div>
+              <div class="table-wrap"><table><thead><tr><th>Residente</th><th>Habitación</th><th>Edad</th><th>Padecimiento</th><th>Responsable</th><th>Estado</th><th></th></tr></thead><tbody id="residents-table"></tbody></table></div>
+            </article>
+          </section>
+
+          <section class="view" data-view="medical-records">
+            <div class="page-heading"><div><p class="eyebrow">Historial clínico</p><h1>Fichas médicas</h1><p>Visitas, padecimientos, diagnósticos, exámenes y medicamentos por residente.</p></div><button class="primary-button compact" type="button" data-demo-action="visit"><span>+</span>Nueva visita médica</button></div>
+            <div class="record-layout">
+              <article class="panel patient-card" id="patient-card">
+                <div class="patient-profile"><span>CM</span><div><p>Residente seleccionado</p><h2>Carlos Méndez</h2><small>Paciente #15 · Habitación A-12</small></div></div>
+                <dl class="patient-data"><div><dt>Fecha de nacimiento</dt><dd>18 de abril de 1948</dd></div><div><dt>Tipo de sangre</dt><dd>O positivo</dd></div><div><dt>Psicopatología</dt><dd>Ansiedad generalizada</dd></div><div><dt>Alergias</dt><dd>Penicilina</dd></div><div><dt>Responsable familiar</dt><dd>Ana Méndez · 5555-0148</dd></div></dl>
+                <div class="record-alert"><strong>Medicamento de cajón</strong><span>Losartán 50 mg · Una vez al día</span></div>
+              </article>
+              <article class="panel clinical-history">
+                <div class="panel-heading"><div><p class="eyebrow">Línea de tiempo</p><h2>Historial de visitas</h2></div><select id="record-year"><option>2026</option><option>2025</option></select></div>
+                <ol class="medical-timeline" id="medical-timeline">
+                  <li><time>21 AGO 2026</time><div><span class="visit-type">Medicina general</span><h3>Dolor recurrente en el pecho</h3><p><strong>Diagnóstico:</strong> Evaluación preventiva; se solicita consulta con cardiología.</p><small>Dr. Juan Pérez · Observación: mantener control de presión arterial.</small><button type="button" data-nav="referrals">Ver referencia relacionada →</button></div></li>
+                  <li><time>12 JUL 2026</time><div><span class="visit-type">Control periódico</span><h3>Seguimiento de hipertensión</h3><p><strong>Diagnóstico:</strong> Presión arterial controlada.</p><small>Dra. Elena Soto · Medicamento: Losartán 50 mg por 30 días.</small></div></li>
+                  <li><time>03 MAY 2026</time><div><span class="visit-type">Laboratorio</span><h3>Hematología y glucosa</h3><p><strong>Resultado:</strong> Glucosa ligeramente elevada; continuar observación.</p><small>Laboratorio de la fundación · Resultados adjuntos a la ficha.</small></div></li>
+                </ol>
+              </article>
+            </div>
+          </section>
+
+          <section class="view" data-view="referrals">
+            <div class="page-heading"><div><p class="eyebrow">Atención especializada</p><h1>Citas y referencias</h1><p>Desde la evaluación general hasta la conversión de la solicitud en visita médica.</p></div><div class="heading-actions"><span class="service-chip"><i></i>Microservicio · 3002</span><button class="primary-button compact" type="button" data-open-referral><span>+</span>Nueva referencia</button></div></div>
+            <div class="referral-layout">
+              <article class="panel records-panel referral-register">
+                <div class="panel-heading responsive"><div><p class="eyebrow">Solicitudes</p><h2>Registro de referencias</h2></div><form class="filter-bar" id="referral-filter-form"><input name="patientId" type="number" min="1" placeholder="ID paciente"/><select name="status"><option value="">Todos los estados</option><option value="PENDING_NURSE_ASSIGNMENT">Pendiente de enfermero</option><option value="PENDING_FOUNDATION">Pendiente de fundación</option><option value="APPOINTMENT_SCHEDULED">Cita programada</option><option value="IN_TRANSIT">En traslado</option><option value="ATTENDED">Atendida</option><option value="COMPLETED">Completada</option><option value="CANCELLED">Cancelada</option></select><button class="outline-button small" type="submit">Filtrar</button></form></div>
+                <div class="table-wrap"><table><thead><tr><th>Referencia</th><th>Paciente</th><th>Especialidad</th><th>Programación</th><th>Estado</th><th></th></tr></thead><tbody id="referrals-table"><tr><td colspan="6" class="empty-cell">Cargando referencias…</td></tr></tbody></table></div>
+              </article>
+              <aside class="panel referral-detail" id="referral-detail"><div class="empty-state"><span><svg viewBox="0 0 24 24"><path d="M5 4h9l5 5v11H5V4Zm9 0v5h5M8 13h8M8 17h5" /></svg></span><h2>Selecciona una referencia</h2><p>Aquí aparecerán su información, el próximo paso y toda la trazabilidad.</p></div></aside>
+            </div>
+          </section>
+
+          <section class="view" data-view="laboratory">
+            <div class="page-heading"><div><p class="eyebrow">Servicios de la fundación</p><h1>Laboratorio clínico</h1><p>Exámenes solicitados en las visitas y resultados disponibles para el médico.</p></div><button class="primary-button compact" type="button" data-demo-action="lab"><span>+</span>Nueva orden</button></div>
+            <div class="metric-grid compact-metrics"><article class="metric-card"><div><p>Órdenes pendientes</p><strong id="metric-lab-pending">—</strong><small>Esperando toma de muestra</small></div></article><article class="metric-card"><div><p>En procesamiento</p><strong id="metric-lab-processing">—</strong><small>En laboratorio</small></div></article><article class="metric-card"><div><p>Resultados listos</p><strong id="metric-lab-ready">—</strong><small>Registros disponibles</small></div></article></div>
+            <article class="panel records-panel"><div class="panel-heading responsive"><div><p class="eyebrow">Órdenes médicas</p><h2>Seguimiento de exámenes</h2></div><label class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="lab-search" type="search" placeholder="Buscar paciente o examen" /></label></div><div class="table-wrap"><table><thead><tr><th>Orden</th><th>Paciente</th><th>Exámenes</th><th>Fecha</th><th>Solicitado por</th><th>Estado</th><th></th></tr></thead><tbody id="laboratory-table"></tbody></table></div></article>
+          </section>
+
+          <section class="view" data-view="pharmacy">
+            <div class="page-heading"><div><p class="eyebrow">Control de medicamentos</p><h1>Farmacia</h1><p>Prescripciones, entrega al residente y costo asignado a la visita médica.</p></div><button class="primary-button compact" type="button" data-demo-action="medicine"><span>+</span>Registrar entrega</button></div>
+            <div class="pharmacy-grid">
+              <article class="panel records-panel"><div class="panel-heading responsive"><div><p class="eyebrow">Inventario</p><h2>Medicamentos disponibles</h2></div><label class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="medicine-search" type="search" placeholder="Buscar medicamento" /></label></div><div class="table-wrap"><table><thead><tr><th>Medicamento</th><th>Presentación</th><th>Existencia</th><th>Precio fundación</th><th>Estado</th></tr></thead><tbody id="pharmacy-table"></tbody></table></div></article>
+              <aside class="panel stock-alerts"><div class="panel-heading"><div><p class="eyebrow">Atención</p><h2>Alertas de inventario</h2></div></div><div class="alert-list"><div><span class="alert-icon coral">!</span><p><strong>Omeprazol 20 mg</strong><small>Quedan 8 unidades · Reabastecer</small></p></div><div><span class="alert-icon amber">!</span><p><strong>Metformina 850 mg</strong><small>Quedan 14 unidades · Existencia baja</small></p></div><div><span class="alert-icon blue">i</span><p><strong>Próxima entrega</strong><small>Pedido de la fundación · 16 SEP</small></p></div></div></aside>
+            </div>
+          </section>
+
+          <section class="view" data-view="expenses">
+            <div class="page-heading"><div><p class="eyebrow">Liquidación médica</p><h1>Gastos médicos</h1><p>Consulta, laboratorio y farmacia con el descuento otorgado por la fundación.</p></div><span class="service-chip"><i></i>Microservicio · 3001</span></div>
+            <div class="expense-layout">
+              <form class="panel expense-form" id="expense-form">
+                <div class="panel-heading"><div><p class="eyebrow">Nueva liquidación</p><h2>Información de la visita</h2></div></div>
+                <div class="form-grid three"><label><span>ID del paciente *</span><input name="patientId" type="number" min="1" value="15" required /></label><label><span>ID de visita médica *</span><input id="medical-visit-id" name="medicalVisitId" type="number" min="1" required /></label><label><span>Estado de cita *</span><select name="appointmentStatus"><option value="COMPLETED">Completada</option><option value="SCHEDULED">Programada</option><option value="CANCELLED">Cancelada</option></select></label><label><span>Costo de consulta *</span><div class="money-input"><b>Q</b><input name="consultationAmount" type="number" min="0" step="0.01" value="150" required /></div></label><label><span>Descuento de fundación *</span><div class="money-input suffix"><input name="foundationDiscountPercent" type="number" min="0" max="100" step="0.01" value="20" required /><b>%</b></div></label></div>
+                <div class="items-section"><div class="items-title"><div><h3>Exámenes de laboratorio</h3><p>Agrega los servicios realizados.</p></div><button class="outline-button small" type="button" data-add-item="laboratory">+ Agregar</button></div><div class="item-head"><span>Descripción</span><span>Cantidad</span><span>Precio</span><span></span></div><div class="item-list" id="laboratory-items"></div></div>
+                <div class="items-section"><div class="items-title"><div><h3>Medicamentos de farmacia</h3><p>Agrega los productos entregados.</p></div><button class="outline-button small" type="button" data-add-item="pharmacy">+ Agregar</button></div><div class="item-head"><span>Descripción</span><span>Cantidad</span><span>Precio</span><span></span></div><div class="item-list" id="pharmacy-items"></div></div>
+              </form>
+              <aside class="panel calculation-panel"><div class="calculation-header"><span>Q</span><div><p class="eyebrow">Resultado</p><h2>Resumen del cálculo</h2></div></div><dl class="calculation-list"><div><dt>Consulta</dt><dd id="calc-consultation">Q0.00</dd></div><div><dt>Laboratorios</dt><dd id="calc-laboratory">Q0.00</dd></div><div><dt>Farmacia</dt><dd id="calc-pharmacy">Q0.00</dd></div><div class="subtotal"><dt>Subtotal</dt><dd id="calc-gross">Q0.00</dd></div><div class="discount"><dt>Descuento</dt><dd id="calc-discount">− Q0.00</dd></div></dl><div class="grand-total"><span>Total a cargar al familiar</span><strong id="calc-total">Q0.00</strong><small>Moneda: GTQ</small></div><button class="primary-button full" id="calculate-expense" type="button">Calcular con el microservicio</button><button class="outline-button full" id="save-expense" type="button" disabled>Guardar liquidación</button><p class="form-message" id="expense-message">Completa la información y calcula el total.</p></aside>
+            </div>
+            <article class="panel records-panel"><div class="panel-heading responsive"><div><p class="eyebrow">Control de pagos</p><h2>Liquidaciones registradas</h2></div><form class="filter-bar" id="expense-filter-form"><input name="patientId" type="number" min="1" placeholder="ID paciente"/><select name="status"><option value="">Todos</option><option value="FINALIZED">Finalizadas</option><option value="VOIDED">Anuladas</option></select><button class="outline-button small" type="submit">Filtrar</button></form></div><div class="table-wrap"><table><thead><tr><th>Liquidación</th><th>Paciente</th><th>Visita</th><th>Fecha</th><th>Subtotal</th><th>Descuento</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody id="liquidations-table"><tr><td colspan="9" class="empty-cell">Cargando liquidaciones…</td></tr></tbody></table></div></article>
+          </section>
+
+          <section class="view" data-view="cash">
+            <div class="page-heading"><div><p class="eyebrow">Entradas y salidas</p><h1>Caja y donaciones</h1><p>Control de cuotas familiares, donaciones, gastos y pagos a la fundación.</p></div><button class="primary-button compact" type="button" data-demo-action="movement"><span>+</span>Nuevo movimiento</button></div>
+            <div class="metric-grid"><article class="metric-card"><span class="metric-icon green">↑</span><div><p>Entradas registradas</p><strong id="metric-cash-income">—</strong><small>Donaciones y cuotas</small></div></article><article class="metric-card"><span class="metric-icon coral">↓</span><div><p>Salidas registradas</p><strong id="metric-cash-expenses">—</strong><small>Servicios y operación</small></div></article><article class="metric-card"><span class="metric-icon blue">Q</span><div><p>Saldo disponible</p><strong id="metric-cash-balance">—</strong><small>Según el libro de caja</small></div></article><article class="metric-card"><span class="metric-icon amber">!</span><div><p>Citas por cancelar</p><strong>3</strong><small>Pendientes con fundación</small></div></article></div>
+            <div class="cash-grid"><article class="panel records-panel"><div class="panel-heading responsive"><div><p class="eyebrow">Libro de caja</p><h2>Movimientos recientes</h2></div><select id="cash-type-filter"><option value="">Todos los movimientos</option><option value="Entrada">Entradas</option><option value="Salida">Salidas</option></select></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Origen / responsable</th><th>Tipo</th><th>Monto</th></tr></thead><tbody id="cash-table"></tbody></table></div></article><aside class="panel family-account"><div class="panel-heading"><div><p class="eyebrow">Cuenta familiar</p><h2>Paciente #15</h2></div></div><dl><div><dt>Cuota mensual</dt><dd>Q1,200.00</dd></div><div><dt>Gastos médicos</dt><dd>Q332.00</dd></div><div><dt>Pagos recibidos</dt><dd class="positive">− Q1,200.00</dd></div></dl><div class="account-total"><span>Saldo pendiente</span><strong>Q332.00</strong></div><button class="outline-button full" type="button" data-demo-action="payment">Registrar pago</button></aside></div>
+          </section>
+
+          <section class="view" data-view="reports">
+            <div class="page-heading"><div><p class="eyebrow">Información para decisiones</p><h1>Reportes</h1><p>Indicadores médicos y financieros solicitados para la fiscalización del asilo.</p></div><button class="outline-button" type="button" data-demo-action="export"><svg viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 19h14" /></svg>Exportar reporte</button></div>
+            <div class="report-grid">
+              <article class="panel report-chart"><div class="panel-heading"><div><p class="eyebrow">Gastos por categoría</p><h2>Costos médicos · Paciente #15</h2></div><select><option>Septiembre 2026</option><option>Agosto 2026</option></select></div><div class="bar-chart"><div><span>Consulta</span><i style="--value: 86%"></i><strong>Q150</strong></div><div><span>Laboratorio</span><i style="--value: 100%"></i><strong>Q175</strong></div><div><span>Farmacia</span><i style="--value: 51%"></i><strong>Q90</strong></div></div><div class="chart-summary"><span>Subtotal Q415</span><span>Descuento Q83</span><strong>Total Q332</strong></div></article>
+              <article class="panel report-chart"><div class="panel-heading"><div><p class="eyebrow">Finanzas</p><h2>Entradas frente a salidas</h2></div></div><div class="finance-bars"><div><strong>Q28,450</strong><span>Entradas</span><i><b style="height: 78%"></b></i></div><div><strong>Q17,825</strong><span>Salidas</span><i><b style="height: 49%"></b></i></div><div><strong>Q10,625</strong><span>Saldo</span><i><b style="height: 29%"></b></i></div></div></article>
+            </div>
+            <article class="panel report-catalog"><div class="panel-heading"><div><p class="eyebrow">Catálogo</p><h2>Informes disponibles</h2></div></div><div class="report-links"><button type="button" data-demo-action="report"><span class="report-icon green">01</span><span><strong>Costos de citas por paciente</strong><small>Consulta, laboratorio, medicamentos y descuento</small></span><b>Generar →</b></button><button type="button" data-demo-action="report"><span class="report-icon coral">02</span><span><strong>Análisis médico por paciente</strong><small>Ficha, motivo de ingreso y tratamiento</small></span><b>Generar →</b></button><button type="button" data-demo-action="report"><span class="report-icon blue">03</span><span><strong>Cobros por rango de fecha</strong><small>Cuotas y detalle de gastos médicos</small></span><b>Generar →</b></button><button type="button" data-demo-action="report"><span class="report-icon amber">04</span><span><strong>Pagos a la fundación</strong><small>Consultas, laboratorio y farmacia</small></span><b>Generar →</b></button><button type="button" data-demo-action="report"><span class="report-icon green">05</span><span><strong>Donaciones y cobros</strong><small>Entradas clasificadas por procedencia</small></span><b>Generar →</b></button><button type="button" data-demo-action="report"><span class="report-icon coral">06</span><span><strong>Exámenes y medicamentos</strong><small>Servicios realizados por paciente</small></span><b>Generar →</b></button></div></article>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+    <dialog class="modal" id="referral-modal">
+      <form class="modal-card" id="create-referral-form" method="dialog">
+        <div class="modal-heading"><div><p class="eyebrow">Solicitud del médico general</p><h2>Nueva referencia médica</h2><p>La solicitud iniciará pendiente de asignación de enfermero.</p></div><button class="icon-button" value="cancel" formnovalidate aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17" /></svg></button></div>
+        <div class="modal-body"><div class="form-grid two"><label><span>ID del paciente *</span><input name="patientId" type="number" min="1" value="15" required /></label><label><span>Especialidad requerida *</span><input name="specialty" minlength="3" maxlength="120" value="Cardiología" required /></label><label><span>ID del médico general *</span><input name="referringDoctorId" type="number" min="1" value="21" required /></label><label><span>Nombre del médico *</span><input name="referringDoctorName" minlength="3" maxlength="150" value="Dr. Juan Pérez" required /></label><label class="span-two"><span>Motivo de la referencia *</span><textarea name="reason" minlength="10" maxlength="1000" rows="4" required>Dolor recurrente en el pecho y dificultad para respirar.</textarea><small>Esta información será visible para el especialista y la fundación.</small></label></div><div class="email-notice"><span>@</span><p><strong>Notificación al familiar</strong><small>El sistema contempla informar por correo el estado y la especialidad de la referencia.</small></p></div></div>
+        <div class="modal-actions"><button class="outline-button" value="cancel" formnovalidate>Cancelar</button><button class="primary-button compact" id="create-referral-submit" type="submit" value="default">Crear solicitud</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="workflow-modal">
+      <form class="modal-card small-modal" id="workflow-form" method="dialog">
+        <div class="modal-heading"><div><p class="eyebrow" id="workflow-kicker">Siguiente paso</p><h2 id="workflow-title">Actualizar referencia</h2><p id="workflow-description"></p></div><button class="icon-button" value="cancel" formnovalidate aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17" /></svg></button></div>
+        <div class="modal-body" id="workflow-fields"></div>
+        <div class="modal-actions"><button class="outline-button" value="cancel" formnovalidate>Cancelar</button><button class="primary-button compact" id="workflow-submit" type="submit" value="default">Guardar cambio</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="liquidation-modal">
+      <div class="modal-card small-modal"><div class="modal-heading"><div><p class="eyebrow">Liquidación médica</p><h2 id="liquidation-title">Detalle</h2></div><button class="icon-button" data-close-liquidation aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17" /></svg></button></div><div class="modal-body" id="liquidation-body"></div><div class="modal-actions"><button class="outline-button" data-close-liquidation>Cerrar</button></div></div>
+    </dialog>
+
+    <dialog class="modal" id="admin-modal">
+      <form class="modal-card" id="admin-form" method="dialog">
+        <div class="modal-heading"><div><p class="eyebrow" id="admin-kicker">Administración</p><h2 id="admin-title">Nuevo registro</h2><p id="admin-description"></p></div><button class="icon-button" value="cancel" formnovalidate aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17" /></svg></button></div>
+        <div class="modal-body" id="admin-fields"></div>
+        <div class="modal-actions"><button class="outline-button" value="cancel" formnovalidate>Cancelar</button><button class="primary-button compact" id="admin-submit" type="submit" value="default">Guardar</button></div>
+      </form>
+    </dialog>
+
+    <template id="expense-item-template">
+      <div class="expense-item"><input class="item-name" minlength="2" maxlength="150" placeholder="Descripción" required/><input class="item-quantity" type="number" min="1" max="10000" step="1" value="1" aria-label="Cantidad" required/><div class="money-input"><b>Q</b><input class="item-price" type="number" min="0" step="0.01" value="0" aria-label="Precio" required/></div><button class="icon-button danger remove-item" type="button" aria-label="Eliminar"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5" /></svg></button></div>
+    </template>
+  </body>
+</html>
