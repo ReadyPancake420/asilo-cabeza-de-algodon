@@ -1,0 +1,77 @@
+name: Resultado de prueba SQA
+description: Registra la ejecución y evidencia de un caso de prueba.
+title: "[SQA] "
+body:
+  - type: input
+    id: test_case
+    attributes:
+      label: Identificador y nombre del caso
+      placeholder: CP-REF-001 — Flujo completo de referencia
+    validations:
+      required: true
+
+  - type: dropdown
+    id: result
+    attributes:
+      label: Resultado
+      options:
+        - Aprobado
+        - Fallido
+        - Bloqueado
+        - No ejecutado
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Rama y commit
+      placeholder: main @ 06eda49
+    validations:
+      required: true
+
+  - type: input
+    id: cycle
+    attributes:
+      label: Ciclo de pruebas
+      placeholder: Ciclo 1 - Integración
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente y datos ficticios utilizados
+    validations:
+      required: true
+
+  - type: textarea
+    id: observation
+    attributes:
+      label: Resultado observado
+      description: Resume la ejecución y cualquier diferencia respecto del resultado esperado.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidencia
+      description: Adjunta capturas, respuesta HTTP o registros sin información sensible.
+    validations:
+      required: true
+
+  - type: input
+    id: defect
+    attributes:
+      label: Defecto relacionado
+      description: Si falló, enlaza el issue del defecto.
+      placeholder: "#123"
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Protección de datos
+      options:
+        - label: La ejecución y la evidencia usan exclusivamente datos ficticios.
+          required: true

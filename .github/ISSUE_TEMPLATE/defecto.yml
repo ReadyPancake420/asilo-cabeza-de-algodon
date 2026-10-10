@@ -1,0 +1,141 @@
+name: Reportar defecto
+description: Registra un comportamiento incorrecto encontrado durante una prueba SQA.
+title: "[DEFECTO] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Usa datos ficticios. No adjuntes contraseñas, tokens, archivos `.env` ni información real de residentes.
+
+  - type: input
+    id: test_case
+    attributes:
+      label: Caso de prueba relacionado
+      description: Identificador del caso, por ejemplo CP-LIQ-001.
+      placeholder: CP-XXX-000
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Módulo
+      options:
+        - Ambiente y Docker
+        - Interfaz
+        - Residentes y fichas
+        - Visitas médicas
+        - Laboratorio
+        - Farmacia
+        - Caja y donaciones
+        - Referencias
+        - Liquidaciones y descuentos
+        - Reportes
+        - Seguridad
+        - Documentación
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidad
+      options:
+        - S1 Bloqueante
+        - S2 Crítico
+        - S3 Mayor
+        - S4 Menor
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridad sugerida
+      options:
+        - P0 Inmediata
+        - P1 Antes del hito
+        - P2 Siguiente ciclo
+        - P3 Mejora
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Rama y commit
+      description: Incluye rama y SHA corto evaluado.
+      placeholder: main @ 06eda49
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Sistema operativo, navegador, Docker y cualquier configuración relevante.
+      placeholder: Windows 11, Docker Desktop, Edge, entorno local
+    validations:
+      required: true
+
+  - type: textarea
+    id: preconditions
+    attributes:
+      label: Precondiciones y datos ficticios
+      description: Indica el estado necesario antes de reproducir el problema.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. Abrir...
+        2. Registrar...
+        3. Observar...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Resultado observado
+      description: Incluye código HTTP y mensaje cuando corresponda.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Frecuencia
+      options:
+        - Siempre
+        - Frecuente
+        - Intermitente
+        - Una vez
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidencia
+      description: Arrastra capturas sin datos sensibles o pega registros y respuestas relevantes.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmaciones
+      options:
+        - label: Verifiqué que el defecto no está reportado previamente.
+          required: true
+        - label: Confirmo que la evidencia usa datos ficticios y no contiene secretos.
+          required: true

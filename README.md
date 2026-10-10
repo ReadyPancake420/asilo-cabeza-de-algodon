@@ -108,6 +108,14 @@ Documentación adicional:
 - [`docs/FRONTEND.md`](docs/FRONTEND.md)
 - [`docs/PRUEBAS_CURL.md`](docs/PRUEBAS_CURL.md)
 - [`docs/GUIA_VIDEO.md`](docs/GUIA_VIDEO.md)
+- [`docs/PLAN_SQA.md`](docs/PLAN_SQA.md)
+- [`docs/CASOS_DE_PRUEBA_SQA.md`](docs/CASOS_DE_PRUEBA_SQA.md)
+
+## Aseguramiento de calidad
+
+El repositorio incluye un plan SQA, casos de prueba por módulo, criterios de entrada y salida, niveles de severidad y plantillas estructuradas para registrar defectos y resultados en GitHub Issues.
+
+La verificación continua compila los tres servicios y ejecuta las pruebas disponibles en cada push y pull request hacia `main`.
 
 ## Estructura principal
 
