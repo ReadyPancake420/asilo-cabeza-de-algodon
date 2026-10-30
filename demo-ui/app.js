@@ -228,7 +228,7 @@ async function login(event) {
   const submit = $('#login-submit');
   const credentials = Object.fromEntries(new FormData(form));
   submit.disabled = true;
-  $('#login-message').textContent = 'Validando credenciales…';
+  $('#login-message').textContent = 'Verificando…';
   try {
     const result = await requestJson(`${adminBase}/api/v1/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(credentials)
@@ -893,6 +893,14 @@ function bindEvents() {
   $('#refresh-button').addEventListener('click', () => refreshAll(true));
   $('#logout-button').addEventListener('click', () => endSession('Sesión cerrada correctamente.'));
   $('#login-form').addEventListener('submit', login);
+  $('#toggle-password').addEventListener('click', (event) => {
+    const input = $('#login-password');
+    const showing = input.type === 'password';
+    input.type = showing ? 'text' : 'password';
+    event.currentTarget.textContent = showing ? 'Ocultar' : 'Mostrar';
+    event.currentTarget.setAttribute('aria-pressed', String(showing));
+    event.currentTarget.setAttribute('aria-label', showing ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
   $('#demo-account').addEventListener('change', (event) => {
     const option = event.currentTarget.selectedOptions[0];
     $('#login-username').value = option.value;
