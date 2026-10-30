@@ -127,6 +127,7 @@ Documentación adicional:
 - [`docs/ARQUITECTURA_Y_DATOS.md`](docs/ARQUITECTURA_Y_DATOS.md)
 - [`docs/MANUALES.md`](docs/MANUALES.md)
 - [`docs/VERSIONES.md`](docs/VERSIONES.md)
+- Planificación editable original: [`ProjectLibre (.pod)`](docs/Plan_de_trabajo_corte_2026-09-26.pod) y [`Microsoft Project XML`](docs/Plan_de_trabajo_corte_2026-09-26.xml). Ambos reflejan el corte del 26 de septiembre, no el avance actual; deben actualizarse con información real.
 
 ## Aseguramiento de calidad
 

@@ -32,12 +32,16 @@ Las rutas `/health` son públicas para permitir el monitoreo. Todas las rutas de
 | Asignar enfermería y programar cita | No | No | Sí | No |
 | Marcar traslado y atención | No | Sí | No | No |
 | Cancelar o convertir referencia en visita | No | No | Sí | No |
-| Consultar liquidaciones | No | No | Sí | Sí |
+| Consultar liquidaciones y su detalle | No | No | No | Sí |
 | Calcular, guardar o anular liquidaciones | No | No | No | Sí |
 | Caja, cuotas, donaciones y pagos | No | No | No | Sí |
-| Reportes consolidados | No | No | Sí | Sí |
+| Reportes clínicos y de servicios | No | No | Sí | Sí |
+| Reportes financieros detallados | No | No | No | Sí |
+| Totales generales de ingresos y gastos | No | No | Sí | Sí |
 
 La interfaz oculta las opciones que no corresponden al rol, pero la protección definitiva se ejecuta también en cada API para impedir que se evada mediante llamadas directas.
+
+**Alcance financiero:** Coordinación consulta únicamente los totales generales de entradas, salidas y saldo mediante «Donaciones y cobros». Ese resumen no aplica los filtros de fecha ni residente. No puede abrir Caja, consultar detalles de movimientos ni acceder a liquidaciones o informes financieros detallados. Administración sí tiene acceso al detalle. La restricción también se aplica en las API.
 
 ## Consideraciones para producción
 

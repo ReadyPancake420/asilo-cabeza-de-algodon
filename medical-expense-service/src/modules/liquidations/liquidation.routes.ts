@@ -15,12 +15,12 @@ export const liquidationRouter = Router();
 liquidationRouter.use(authenticate);
 liquidationRouter.post('/preview', allowRoles('ADMINISTRACION'), validateBody(calculationSchema), controller.preview);
 liquidationRouter.post('/', allowRoles('ADMINISTRACION'), validateBody(createLiquidationSchema), asyncHandler(controller.create));
-liquidationRouter.get('/report', allowRoles('COORDINACION', 'ADMINISTRACION'), asyncHandler(async (_request, response) => {
+liquidationRouter.get('/report', allowRoles('ADMINISTRACION'), asyncHandler(async (_request, response) => {
   response.set('Cache-Control', 'no-store').json({ data: await listLiquidationsForReport() });
 }));
-liquidationRouter.get('/', allowRoles('COORDINACION', 'ADMINISTRACION'), asyncHandler(controller.list));
-liquidationRouter.get('/visit/:medicalVisitId', allowRoles('COORDINACION', 'ADMINISTRACION'), asyncHandler(controller.getByVisit));
-liquidationRouter.get('/:id', allowRoles('COORDINACION', 'ADMINISTRACION'), asyncHandler(controller.getOne));
+liquidationRouter.get('/', allowRoles('ADMINISTRACION'), asyncHandler(controller.list));
+liquidationRouter.get('/visit/:medicalVisitId', allowRoles('ADMINISTRACION'), asyncHandler(controller.getByVisit));
+liquidationRouter.get('/:id', allowRoles('ADMINISTRACION'), asyncHandler(controller.getOne));
 liquidationRouter.patch(
   '/:id/void',
   allowRoles('ADMINISTRACION'),

@@ -23,7 +23,7 @@ const roleLabels = {
 };
 
 const viewRoles = {
-  expenses: ['COORDINACION', 'ADMINISTRACION'],
+  expenses: ['ADMINISTRACION'],
   cash: ['ADMINISTRACION'],
   reports: ['COORDINACION', 'ADMINISTRACION']
 };
@@ -193,7 +193,10 @@ function applyRoleAccess() {
   $$('[data-open-referral]').forEach((item) => item.classList.toggle('is-role-hidden', !hasRole('MEDICO')));
   const expenseEditor = $('.expense-layout');
   if (expenseEditor) expenseEditor.classList.toggle('is-role-hidden', !hasRole('ADMINISTRACION'));
-  $('#metric-expenses').closest('.metric-card')?.classList.toggle('is-role-hidden', !hasRole('COORDINACION', 'ADMINISTRACION'));
+  $('#metric-expenses').closest('.metric-card')?.classList.toggle('is-role-hidden', !hasRole('ADMINISTRACION'));
+  $$('[data-report="costs"], [data-report="charges"], [data-report="foundation"]').forEach((item) => item.classList.toggle('is-role-hidden', !hasRole('ADMINISTRACION')));
+  const incomeLabel = $('[data-report="income"] small');
+  if (incomeLabel) incomeLabel.textContent = hasRole('ADMINISTRACION') ? 'Entradas registradas por categoría y procedencia' : 'Totales generales de ingresos y gastos';
   $('#profile-initials').textContent = initials(state.user.fullName);
   $('#profile-name').textContent = state.user.fullName;
   $('#profile-role').textContent = roleLabels[state.user.role] || state.user.role;
@@ -208,6 +211,13 @@ function setLoginMessage(message, kind = 'error') {
 function endSession(message = '', kind = 'error') {
   state.token = null;
   state.user = null;
+  state.liquidations = [];
+  state.adminSummary = null;
+  cashMovements.splice(0);
+  $('#cash-table').innerHTML = '';
+  $('#liquidations-table').innerHTML = '';
+  $('#report-result').hidden = true;
+  $('#report-content').innerHTML = '';
   sessionStorage.removeItem('asiloToken');
   $('.app-shell').classList.add('is-locked');
   $('#login-screen').hidden = false;
@@ -479,9 +489,18 @@ function renderReferrals() {
     <tr><td><strong>#${referral.id}</strong><small>${escapeHtml(referral.referringDoctorName)}</small></td><td>${escapeHtml(residentName(referral.patientId))}</td><td>${escapeHtml(referral.specialty)}</td><td><strong>${formatDate(referral.scheduledDate)}</strong><small>${escapeHtml(referral.scheduledTime || 'Hora pendiente')}</small></td><td>${badge(referral.status)}</td><td><button class="table-action" type="button" data-referral-id="${referral.id}">Seguimiento</button></td></tr>`).join('');
 }
 
+function guatemalaToday() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Guatemala', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
+
+function upcomingAppointments() {
+  const today = guatemalaToday();
+  return state.referrals.filter((item) => item.status === 'APPOINTMENT_SCHEDULED' && item.scheduledDate && String(item.scheduledDate).slice(0, 10) >= today);
+}
+
 function renderDashboardMetrics() {
   const active = state.referrals.filter((item) => !['COMPLETED', 'CANCELLED'].includes(item.status));
-  const scheduled = state.referrals.filter((item) => item.status === 'APPOINTMENT_SCHEDULED');
+  const scheduled = upcomingAppointments();
   const total = state.liquidations.filter((item) => item.status === 'FINALIZED').reduce((sum, item) => sum + number(item.totalDue), 0);
   $('#metric-referrals').textContent = active.length;
   $('#metric-scheduled').textContent = scheduled.length;
@@ -502,9 +521,7 @@ function renderDashboardReferrals() {
 
 function renderDashboardAppointments() {
   const container = $('#dashboard-appointments');
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Guatemala', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-  const items = state.referrals
-    .filter((item) => item.status === 'APPOINTMENT_SCHEDULED' && item.scheduledDate && String(item.scheduledDate).slice(0, 10) >= today)
+  const items = upcomingAppointments()
     .sort((a, b) => `${a.scheduledDate}T${a.scheduledTime || '00:00'}`.localeCompare(`${b.scheduledDate}T${b.scheduledTime || '00:00'}`))
     .slice(0, 3);
   if (!items.length) {
@@ -548,16 +565,16 @@ function renderReferralDetail(referral) {
     <div class="detail-head"><div><p class="eyebrow">Referencia #${referral.id}</p><h2>${escapeHtml(residentName(referral.patientId))}</h2><p>${escapeHtml(referral.specialty)}</p></div>${badge(referral.status)}</div>
     <dl class="detail-data"><div><dt>Médico general</dt><dd>${escapeHtml(referral.referringDoctorName)}</dd></div><div><dt>Enfermero acompañante</dt><dd>${escapeHtml(referral.nurseName || 'Pendiente')}</dd></div><div><dt>Especialista</dt><dd>${escapeHtml(referral.specialistDoctorName || 'Pendiente')}</dd></div><div><dt>Fecha y hora</dt><dd>${formatDate(referral.scheduledDate)}${referral.scheduledTime ? ` · ${escapeHtml(referral.scheduledTime)}` : ''}</dd></div></dl>
     <div class="reason-box"><strong>Motivo de la referencia</strong><p>${escapeHtml(referral.reason)}</p></div>
-    <div class="detail-actions">${referralActionButtons(referral) || '<span class="status-badge neutral">El flujo ha finalizado</span>'}</div>
+    <div class="detail-actions">${referralActionButtons(referral) || (['COMPLETED', 'CANCELLED'].includes(referral.status) ? '<span class="status-badge neutral">El flujo ha finalizado</span>' : '<span class="status-badge neutral">No hay acciones disponibles para tu rol en este estado</span>')}</div>
     <h3 class="timeline-title">Trazabilidad completa</h3>
     <ol class="referral-timeline">${(referral.timeline || []).map((event) => `<li><strong>${escapeHtml(eventLabels[event.eventType] || event.eventType)}</strong><span>${escapeHtml(event.description)}</span><time>${formatDate(event.occurredAt)}</time></li>`).join('')}</ol>`;
 }
 
 function workflowConfig(action) {
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const today = guatemalaToday();
   const configs = {
     nurse: { kicker: 'Asignación del asilo', title: 'Asignar enfermero acompañante', description: 'El enfermero será responsable de acompañar al paciente.', submit: 'Asignar enfermero', fields: `<div class="form-grid two"><label><span>ID del enfermero *</span><input name="nurseId" type="number" min="1" value="8" required></label><label><span>Nombre completo *</span><input name="nurseName" minlength="3" value="Enfermero Carlos Díaz" required></label></div>` },
-    schedule: { kicker: 'Módulo de la fundación', title: 'Programar atención con especialista', description: 'Asigna médico, fecha y hora para la consulta.', submit: 'Guardar programación', fields: `<div class="form-grid two"><label><span>ID del especialista *</span><input name="specialistDoctorId" type="number" min="1" value="35" required></label><label><span>Nombre del especialista *</span><input name="specialistDoctorName" minlength="3" value="Dra. María López" required></label><label><span>Fecha *</span><input name="scheduledDate" type="date" value="${tomorrow}" required></label><label><span>Hora *</span><input name="scheduledTime" type="time" value="10:30" required></label></div>` },
+    schedule: { kicker: 'Módulo de la fundación', title: 'Programar atención con especialista', description: 'Asigna médico, fecha y hora para la consulta.', submit: 'Guardar programación', fields: `<div class="form-grid two"><label><span>ID del especialista *</span><input name="specialistDoctorId" type="number" min="1" value="35" required></label><label><span>Nombre del especialista *</span><input name="specialistDoctorName" minlength="3" value="Dra. María López" required></label><label><span>Fecha *</span><input name="scheduledDate" type="date" value="${today}" required></label><label><span>Hora *</span><input name="scheduledTime" type="time" value="10:30" required></label></div>` },
     transit: { kicker: 'Traslado del paciente', title: 'Iniciar traslado', description: 'La referencia cambiará al estado “En traslado”.', submit: 'Confirmar traslado', fields: '<p class="reason-box">Confirma que el paciente salió del asilo acompañado por el enfermero asignado.</p>' },
     attended: { kicker: 'Confirmación médica', title: 'Marcar paciente atendido', description: 'El especialista ya recibió y evaluó al paciente.', submit: 'Confirmar atención', fields: '<p class="reason-box">Después de confirmar, la referencia podrá vincularse con una visita médica ya registrada.</p>' },
     convert: { kicker: 'Vinculación de referencia', title: 'Relacionar con visita médica', description: 'Ingresa una visita ya registrada para este residente. Esta acción comprueba la relación, pero no crea una visita.', submit: 'Guardar relación', fields: '<div class="form-grid"><label><span>ID de la visita médica existente *</span><input name="medicalVisitId" type="number" min="1" required></label></div>' },
@@ -643,7 +660,7 @@ async function createReferral(event) {
   try {
     const result = await requestJson(`${referralBase}/api/v1/referrals`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ patientId: number(values.patientId), specialty: values.specialty, reason: values.reason, referringDoctorId: number(values.referringDoctorId), referringDoctorName: values.referringDoctorName })
+      body: JSON.stringify({ patientId: number(values.patientId), specialty: values.specialty, reason: values.reason })
     });
     $('#referral-modal').close();
     navigate('referrals');
@@ -778,7 +795,7 @@ function medicineOptions() {
 }
 
 function adminFormConfig(action, contextId) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = guatemalaToday();
   const order = laboratoryOrders.find((item) => item.id === number(contextId));
   const configs = {
     resident: {
@@ -787,7 +804,7 @@ function adminFormConfig(action, contextId) {
     },
     visit: {
       kicker: 'Historial clínico', title: 'Nueva visita médica', description: 'La atención quedará agregada a la ficha del residente seleccionado.', submit: 'Registrar visita',
-      fields: `<div class="form-grid two"><label><span>Residente *</span><select name="residentId" required>${residentOptions()}</select></label><label><span>Fecha *</span><input name="visitDate" type="date" value="${today}" required></label><label><span>Tipo de atención *</span><input name="visitType" value="Medicina general" minlength="3" required></label><label><span>Médico *</span><input name="doctorName" value="Dr. Juan Pérez" minlength="3" required></label><label class="span-two"><span>Motivo *</span><textarea name="reason" minlength="5" rows="2" required></textarea></label><label class="span-two"><span>Diagnóstico *</span><textarea name="diagnosis" minlength="3" rows="3" required></textarea></label><label class="span-two"><span>Tratamiento</span><textarea name="treatment" rows="2"></textarea></label><label class="span-two"><span>Observaciones</span><textarea name="observations" rows="2"></textarea></label></div>`
+      fields: `<div class="form-grid two"><label><span>Residente *</span><select name="residentId" required>${residentOptions()}</select></label><label><span>Fecha *</span><input name="visitDate" type="date" value="${today}" required></label><label><span>Tipo de atención *</span><input name="visitType" value="Medicina general" minlength="3" required></label><label><span>Médico</span><input value="${escapeHtml(state.user.fullName)}" readonly></label><label class="span-two"><span>Motivo *</span><textarea name="reason" minlength="5" rows="2" required></textarea></label><label class="span-two"><span>Diagnóstico *</span><textarea name="diagnosis" minlength="3" rows="3" required></textarea></label><label class="span-two"><span>Tratamiento</span><textarea name="treatment" rows="2"></textarea></label><label class="span-two"><span>Observaciones</span><textarea name="observations" rows="2"></textarea></label></div>`
     },
     lab: {
       kicker: 'Laboratorio clínico', title: 'Nueva orden de laboratorio', description: 'Asocia los exámenes solicitados con el residente y, opcionalmente, una visita.', submit: 'Crear orden',
@@ -896,6 +913,10 @@ async function generateReport(kind) {
   }
   const titles = { costs: 'Costos de citas por paciente', medical: 'Análisis médico por paciente', charges: 'Cobros por rango de fecha', foundation: 'Pagos a la fundación', income: 'Donaciones y cobros', services: 'Exámenes y medicamentos' };
   if (!titles[kind]) return;
+  if (hasRole('COORDINACION') && ['costs', 'charges', 'foundation'].includes(kind)) {
+    showToast('Acción no permitida', 'El detalle financiero está reservado para Administración.', true);
+    return;
+  }
   const result = $('#report-result');
   result.hidden = false;
   $('#report-title').textContent = titles[kind];
@@ -906,7 +927,14 @@ async function generateReport(kind) {
   const sum = (items, key) => items.reduce((total, item) => total + Math.round(number(item[key]) * 100), 0) / 100;
   try {
     let html = '';
-    if (kind === 'costs' || kind === 'charges') {
+    if (kind === 'income' && hasRole('COORDINACION')) {
+      const summary = (await requestJson(`${adminBase}/api/v1/reports/summary`)).data.cash;
+      $('#report-period').textContent = 'Totales generales · sin filtros de fechas ni residente';
+      html = '<p>Resumen general de movimientos de caja. Los detalles de cada movimiento son exclusivos de Administración.</p>' +
+        `<p class="report-total">Ingresos: ${money.format(number(summary.income))}</p>` +
+        `<p class="report-total">Gastos: ${money.format(number(summary.expenses))}</p>` +
+        `<p class="report-total">Saldo: ${money.format(number(summary.income) - number(summary.expenses))}</p>`;
+    } else if (kind === 'costs' || kind === 'charges') {
       const liquidations = (await requestJson(`${expenseBase}/api/v1/liquidations/report`)).data.filter((item) => item.status === 'FINALIZED' && matches(item.patientId, item.createdAt));
       if (kind === 'costs') {
         html = '<p>Se incluyen liquidaciones finalizadas. Las fechas corresponden a su registro.</p>' + reportTable(['Fecha', 'Residente', 'Visita', 'Consulta', 'Laboratorio', 'Farmacia', 'Descuento', 'Total'], liquidations.map((item) => [formatDate(item.createdAt), nameFor(item.patientId), `#${item.medicalVisitId}`, money.format(number(item.consultationAmount)), money.format(number(item.laboratorySubtotal)), money.format(number(item.pharmacySubtotal)), money.format(number(item.discountAmount)), money.format(number(item.totalDue))])) + `<p class="report-total">Total de liquidaciones: ${money.format(sum(liquidations, 'totalDue'))}</p>`;

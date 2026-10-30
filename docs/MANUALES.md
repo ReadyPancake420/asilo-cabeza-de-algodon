@@ -12,6 +12,36 @@
 
 No utilice información personal real en esta demostración. La matriz de permisos está en `AUTENTICACION_Y_ROLES.md`.
 
+### Inicio de sesión
+
+![Pantalla de inicio de sesión](imagenes-manual/inicio-sesion.png)
+
+Ingrese el usuario y contraseña de su cuenta de prueba. Use **Mostrar** si necesita revisar la contraseña escrita. Después de ingresar, el menú y las acciones se ajustan al rol. Los ejemplos de las capturas son datos ficticios de demostración.
+
+### Médico
+
+![Ficha médica en el perfil médico](imagenes-manual/medico-ficha.png)
+
+En **Residentes**, elija a la persona y abra **Fichas médicas** para consultar su historial. Con **Nueva visita médica**, complete fecha, motivo y diagnóstico; el médico se toma automáticamente de la sesión. Para solicitar una atención especializada, use **Nueva referencia**, indique el residente, la especialidad y el motivo. También puede crear órdenes de laboratorio y consultar farmacia. No tiene acceso a caja ni a reportes financieros.
+
+### Enfermería
+
+![Farmacia en el perfil de enfermería](imagenes-manual/enfermeria-farmacia.png)
+
+Consulte el expediente y las órdenes de laboratorio; registre resultados cuando estén disponibles. En **Farmacia**, revise existencias y use **Registrar entrega** para documentar los medicamentos entregados. En **Citas y referencias**, abra el seguimiento de la solicitud y, cuando corresponda a su estado, registre el inicio del traslado o la atención. Estas acciones solo se habilitan en el paso adecuado.
+
+### Coordinación
+
+![Referencias en el perfil de coordinación](imagenes-manual/coordinacion-referencias.png)
+
+En **Citas y referencias**, seleccione **Seguimiento** para ver el estado y la trazabilidad. Según el paso, puede asignar enfermero, programar o reprogramar una cita, cancelar o vincular una visita ya registrada para ese residente. En **Reportes** puede consultar informes clínicos y de servicios. El informe **Donaciones y cobros** muestra únicamente los totales generales de ingresos, gastos y saldo, sin aplicar filtros ni mostrar movimientos individuales. Caja, liquidaciones y detalles financieros son exclusivos de Administración.
+
+### Administración
+
+![Caja en el perfil de administración](imagenes-manual/administracion-caja.png)
+
+En **Residentes**, registre los datos del residente y su familiar responsable. En **Caja y donaciones**, use **Nuevo movimiento** para registrar ingresos o salidas y consulte los movimientos existentes. En **Gastos médicos**, ingrese el residente y la visita existente, agregue los importes, calcule y guarde la liquidación; también puede consultar o anular una liquidación según corresponda. En **Reportes**, aplique filtros antes de consultar o imprimir.
+
 ## Manual técnico
 
 El sistema utiliza una interfaz HTML/CSS/JavaScript servida por Nginx y tres API Express/TypeScript, cada una con MySQL. La arquitectura y el modelo de datos están en `ARQUITECTURA_Y_DATOS.md`.

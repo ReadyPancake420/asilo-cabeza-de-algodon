@@ -34,7 +34,6 @@ const visitSchema = z.object({
   residentId: idSchema,
   visitDate: dateSchema,
   visitType: z.string().trim().min(3).max(100),
-  doctorName: z.string().trim().min(3).max(150),
   reason: z.string().trim().min(5).max(500),
   diagnosis: z.string().trim().min(3).max(1000),
   treatment: z.string().trim().max(1000).optional().default(''),
@@ -156,9 +155,9 @@ administrationRouter.post('/medical-visits', allowRoles('MEDICO'), asyncHandler(
   const [result] = await pool.execute<ResultSetHeader>(
     `INSERT INTO medical_visits (resident_id, visit_date, visit_type, doctor_name, reason, diagnosis, treatment, observations)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [data.residentId, data.visitDate, data.visitType, data.doctorName, data.reason, data.diagnosis, data.treatment, data.observations]
+    [data.residentId, data.visitDate, data.visitType, request.auth!.fullName, data.reason, data.diagnosis, data.treatment, data.observations]
   );
-  response.status(201).json({ data: { id: result.insertId, ...data } });
+  response.status(201).json({ data: { id: result.insertId, ...data, doctorName: request.auth!.fullName } });
 }));
 
 administrationRouter.get('/laboratory-orders', asyncHandler(async (_request, response) => {
@@ -268,13 +267,13 @@ administrationRouter.get('/reports/summary', allowRoles('COORDINACION', 'ADMINIS
 }));
 
 // Datos de reportes: lectura limitada a los mismos roles autorizados para el módulo.
-administrationRouter.get('/reports/data', allowRoles('COORDINACION', 'ADMINISTRACION'), asyncHandler(async (_request, response) => {
+administrationRouter.get('/reports/data', allowRoles('COORDINACION', 'ADMINISTRACION'), asyncHandler(async (request, response) => {
   const [[movements], [deliveries]] = await Promise.all([
-    pool.execute<RowDataPacket[]>(`SELECT id, DATE_FORMAT(movement_date, '%Y-%m-%d') AS date,
+    request.auth!.role === 'ADMINISTRACION' ? pool.execute<RowDataPacket[]>(`SELECT id, DATE_FORMAT(movement_date, '%Y-%m-%d') AS date,
       concept, source, type, category, amount, resident_id AS residentId
-      FROM cash_movements ORDER BY movement_date DESC, id DESC`),
+      FROM cash_movements ORDER BY movement_date DESC, id DESC`) : Promise.resolve([[] as RowDataPacket[]]),
     pool.execute<RowDataPacket[]>(`SELECT d.id, d.resident_id AS residentId, r.full_name AS residentName,
-      d.medical_visit_id AS medicalVisitId, m.name AS medicine, d.quantity, d.unit_price AS unitPrice,
+      d.medical_visit_id AS medicalVisitId, m.name AS medicine, d.quantity,
       d.prescribed_by AS prescribedBy, d.notes, DATE_FORMAT(d.delivered_at, '%Y-%m-%d') AS date
       FROM medication_deliveries d JOIN residents r ON r.id = d.resident_id
       JOIN medicines m ON m.id = d.medicine_id ORDER BY d.delivered_at DESC, d.id DESC`)

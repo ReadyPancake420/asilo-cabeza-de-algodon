@@ -23,7 +23,7 @@ const parsePositiveId = (value: unknown): number => {
 
 export async function create(request: Request, response: Response): Promise<void> {
   await verifyResidentAndVisit(request.body.patientId, null, request.get('authorization') || '');
-  response.status(201).json({ data: await createReferral(request.body) });
+  response.status(201).json({ data: await createReferral({ ...request.body, referringDoctorId: request.auth!.id, referringDoctorName: request.auth!.fullName }) });
 }
 
 export async function getOne(request: Request, response: Response): Promise<void> {

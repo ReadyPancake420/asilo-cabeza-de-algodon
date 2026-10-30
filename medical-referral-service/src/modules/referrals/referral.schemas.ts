@@ -14,9 +14,7 @@ const validDate = (value: string): boolean => {
 export const createReferralSchema = z.object({
   patientId: z.number().int().positive(),
   specialty: z.string().trim().min(3).max(120),
-  reason: z.string().trim().min(10).max(1000),
-  referringDoctorId: z.number().int().positive(),
-  referringDoctorName: z.string().trim().min(3).max(150)
+  reason: z.string().trim().min(10).max(1000)
 });
 
 export const nurseAssignmentSchema = z.object({
