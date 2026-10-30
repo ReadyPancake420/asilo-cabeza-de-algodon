@@ -7,7 +7,7 @@
     <meta name="description" content="Sistema para Administración del Asilo de Ancianos Cabeza de Algodón" />
     <title>Cabeza de Algodón | Sistema administrativo</title>
     <link rel="stylesheet" href="/styles.css?v=sqa-1" />
-    <script src="/app.js?v=sqa-1" defer></script>
+    <script src="/app.js?v=integration-1" defer></script>
   </head>
   <body>
     <section class="login-screen" id="login-screen">
@@ -193,7 +193,7 @@
             <div class="expense-layout">
               <form class="panel expense-form" id="expense-form">
                 <div class="panel-heading"><div><p class="eyebrow">Nueva liquidación</p><h2>Información de la visita</h2></div></div>
-                <div class="form-grid three"><label><span>ID del paciente *</span><input name="patientId" type="number" min="1" value="15" required /></label><label><span>ID de visita médica *</span><input id="medical-visit-id" name="medicalVisitId" type="number" min="1" required /></label><label><span>Estado de cita *</span><select name="appointmentStatus"><option value="COMPLETED">Completada</option><option value="SCHEDULED">Programada</option><option value="CANCELLED">Cancelada</option></select></label><label><span>Costo de consulta *</span><div class="money-input"><b>Q</b><input name="consultationAmount" type="number" min="0" step="0.01" value="150" required /></div></label><label><span>Descuento de fundación *</span><div class="money-input suffix"><input name="foundationDiscountPercent" type="number" min="0" max="100" step="0.01" value="20" required /><b>%</b></div></label></div>
+                <div class="form-grid three"><label><span>ID del paciente *</span><input name="patientId" type="number" min="1" required /></label><label><span>ID de visita médica *</span><input id="medical-visit-id" name="medicalVisitId" type="number" min="1" required /></label><label><span>Estado de cita *</span><select name="appointmentStatus"><option value="COMPLETED">Completada</option><option value="SCHEDULED">Programada</option><option value="CANCELLED">Cancelada</option></select></label><label><span>Costo de consulta *</span><div class="money-input"><b>Q</b><input name="consultationAmount" type="number" min="0" step="0.01" value="150" required /></div></label><label><span>Descuento de fundación *</span><div class="money-input suffix"><input name="foundationDiscountPercent" type="number" min="0" max="100" step="0.01" value="20" required /><b>%</b></div></label></div>
                 <div class="items-section"><div class="items-title"><div><h3>Exámenes de laboratorio</h3><p>Agrega los servicios realizados.</p></div><button class="outline-button small" type="button" data-add-item="laboratory">+ Agregar</button></div><div class="item-head"><span>Descripción</span><span>Cantidad</span><span>Precio</span><span></span></div><div class="item-list" id="laboratory-items"></div></div>
                 <div class="items-section"><div class="items-title"><div><h3>Medicamentos de farmacia</h3><p>Agrega los productos entregados.</p></div><button class="outline-button small" type="button" data-add-item="pharmacy">+ Agregar</button></div><div class="item-head"><span>Descripción</span><span>Cantidad</span><span>Precio</span><span></span></div><div class="item-list" id="pharmacy-items"></div></div>
               </form>

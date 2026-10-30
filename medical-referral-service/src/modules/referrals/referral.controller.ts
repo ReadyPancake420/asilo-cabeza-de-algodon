@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AppError } from '../../shared/AppError';
+import { verifyResidentAndVisit } from '../../shared/administrationClient';
 import {
   allowedNextStatuses,
   assignNurse,
@@ -21,6 +22,7 @@ const parsePositiveId = (value: unknown): number => {
 };
 
 export async function create(request: Request, response: Response): Promise<void> {
+  await verifyResidentAndVisit(request.body.patientId, null, request.get('authorization') || '');
   response.status(201).json({ data: await createReferral(request.body) });
 }
 
@@ -76,7 +78,8 @@ export async function convert(request: Request, response: Response): Promise<voi
   response.json({
     data: await convertToMedicalVisit(
       parsePositiveId(request.params.id),
-      request.body.medicalVisitId
+      request.body.medicalVisitId,
+      request.get('authorization') || ''
     )
   });
 }

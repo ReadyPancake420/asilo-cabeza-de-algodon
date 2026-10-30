@@ -1,10 +1,14 @@
 # Estado de módulos comparado con el cronograma
 
+## Seguimiento posterior: integración de identificadores
+
+Se agregó la comprobación de residentes al crear referencias, y de la pertenencia de las visitas al vincular referencias y guardar liquidaciones. Debe volver a ejecutar el SQA sus casos sobre la versión actualizada, utilizando residentes y visitas existentes. Los vínculos anteriores no se revisan automáticamente y el estado de cita en liquidaciones aún se ingresa manualmente.
+
 ## Actualización de seguimiento: 29 de octubre de 2026
 
 El SQA informó una primera ejecución sobre el commit `db117ea`, con 287 verificaciones aprobadas de 297. Posteriormente se corrigieron observaciones de validación y presentación, y se añadieron pruebas automáticas. Estas correcciones requieren una nueva ejecución del SQA sobre el commit que las incluya. Los reportes se ampliaron respecto al corte anterior.
 
-Siguen pendientes la validación automática entre referencias, visitas y liquidaciones; la aceptación y usabilidad; y el acceso público seguro. Las fechas y el porcentaje real del cronograma en Microsoft Project deben actualizarse con el responsable del proyecto a partir de las horas efectivamente trabajadas; este seguimiento no inventa tiempos ni modifica el archivo de planificación.
+ Siguen pendientes la validación automática entre referencias, visitas y liquidaciones; la aceptación y usabilidad; y el acceso público seguro. Las fechas y el porcentaje real del cronograma en Microsoft Project deben actualizarse con el responsable del proyecto a partir de las horas efectivamente trabajadas; este seguimiento no inventa tiempos ni modifica el archivo de planificación.
 
 **Proyecto:** Sistema para el Asilo Cabeza de Algodón  
 **Curso:** Análisis de Sistemas II  

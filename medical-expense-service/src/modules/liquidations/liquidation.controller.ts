@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AppError } from '../../shared/AppError';
+import { verifyResidentAndVisit } from '../../shared/administrationClient';
 import {
   createLiquidation,
   getLiquidation,
@@ -22,6 +23,9 @@ export function preview(request: Request, response: Response): void {
 }
 
 export async function create(request: Request, response: Response): Promise<void> {
+  if (request.body.appointmentStatus !== 'CANCELLED') {
+    await verifyResidentAndVisit(request.body.patientId, request.body.medicalVisitId, request.get('authorization') || '');
+  }
   const liquidation = await createLiquidation(request.body);
   response.status(201).json({ data: liquidation });
 }

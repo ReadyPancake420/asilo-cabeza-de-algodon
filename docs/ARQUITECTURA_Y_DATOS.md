@@ -11,11 +11,13 @@ flowchart LR
   A --> AD[(Base administrativa)]
   R --> RD[(Base de referencias)]
   G --> GD[(Base de liquidaciones)]
+  R -->|verifica residente y visita| A
+  G -->|verifica residente y visita| A
 ```
 
 ## Entidades y relaciones en las bases de datos
 
-Las líneas representan claves foráneas existentes dentro de cada base. Los identificadores de paciente o visita almacenados en otras bases son referencias lógicas: actualmente no tienen una clave foránea ni verificación automática entre servicios.
+Las líneas representan claves foráneas existentes dentro de cada base. Los identificadores de paciente o visita almacenados en otras bases son referencias lógicas sin clave foránea entre bases; los servicios verifican los nuevos vínculos mediante el servicio administrativo.
 
 ```mermaid
 erDiagram
@@ -62,4 +64,4 @@ Para ver todos los campos y restricciones, consultar los archivos `database/init
 
 ## Limitación importante
 
-La conversión de una referencia registra el identificador de una visita, pero no crea ni verifica que exista o que pertenezca al paciente. Las liquidaciones tampoco verifican esos identificadores contra la base administrativa. Esta integración debe completarse y probarse antes de considerar el sistema listo para datos reales.
+La conversión de una referencia vincula una visita ya registrada y comprueba que pertenezca al residente; no crea una visita. Las nuevas liquidaciones también validan el residente y su visita. Los registros anteriores no se corrigen automáticamente y el estado de cita de la liquidación sigue siendo proporcionado por el usuario. Las bases son independientes, por lo que la consulta no constituye una transacción distribuida. Se requieren pruebas completas de integración y aceptación antes de usar datos reales.

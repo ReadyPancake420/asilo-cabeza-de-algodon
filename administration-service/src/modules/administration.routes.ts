@@ -90,6 +90,19 @@ const residentSelect = `
     psychopathology, allergies, created_at AS createdAt
   FROM residents`;
 
+// Minimal cross-service lookup; no medical details leave this endpoint.
+administrationRouter.get('/integration/residents/:id', allowRoles('MEDICO', 'COORDINACION', 'ADMINISTRACION'), asyncHandler(async (request, response) => {
+  const residentId = idSchema.parse(request.params.id);
+  const visitId = request.query.medicalVisitId === undefined ? null : idSchema.parse(request.query.medicalVisitId);
+  const [residents] = await pool.execute<RowDataPacket[]>('SELECT id FROM residents WHERE id = ?', [residentId]);
+  if (!residents.length) throw new AppError(404, 'RESIDENT_NOT_FOUND', 'No se encontro el residente');
+  if (visitId !== null) {
+    const [visits] = await pool.execute<RowDataPacket[]>('SELECT id FROM medical_visits WHERE id = ? AND resident_id = ?', [visitId, residentId]);
+    if (!visits.length) throw new AppError(404, 'VISIT_NOT_FOUND_FOR_RESIDENT', 'La visita no existe o no pertenece al residente');
+  }
+  response.set('Cache-Control', 'no-store').json({ data: { residentId, medicalVisitId: visitId } });
+}));
+
 administrationRouter.get('/residents', asyncHandler(async (request, response) => {
   const status = typeof request.query.status === 'string' ? request.query.status : '';
   const search = typeof request.query.search === 'string' ? request.query.search.trim() : '';

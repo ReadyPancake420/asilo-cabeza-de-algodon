@@ -33,6 +33,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
+      ADMINISTRATION_URL: http://administration-service:3003
       DB_HOST: expense-db
       DB_PORT: 3306
       DB_NAME: ${EXPENSE_DB_NAME:-medical_expenses}
@@ -85,6 +86,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3002
+      ADMINISTRATION_URL: http://administration-service:3003
       DB_HOST: referral-db
       DB_PORT: 3306
       DB_NAME: ${REFERRAL_DB_NAME:-medical_referrals}

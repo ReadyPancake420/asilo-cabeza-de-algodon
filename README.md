@@ -24,6 +24,7 @@ Pendiente de implementar:
 
 - Especificación OpenAPI y Swagger UI.
 - Pruebas integrales, de seguridad y de aceptación ampliadas.
+- Verificación del estado de cita ingresado en la liquidación y revisión de vínculos históricos entre servicios.
 - Despliegue público con HTTPS, respaldos y monitoreo.
 
 ## Arquitectura

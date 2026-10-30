@@ -1,4 +1,5 @@
 import { AppError } from '../../shared/AppError';
+import { verifyResidentAndVisit } from '../../shared/administrationClient';
 import {
   findReferralById,
   insertReferral,
@@ -100,9 +101,10 @@ export async function updateStatus(
   });
 }
 
-export async function convertToMedicalVisit(id: number, medicalVisitId: number) {
+export async function convertToMedicalVisit(id: number, medicalVisitId: number, authorization: string) {
   const referral = await getReferral(id);
   assertTransitionAllowed(referral.status, 'COMPLETED');
+  await verifyResidentAndVisit(Number(referral.patientId), medicalVisitId, authorization);
 
   try {
     return await persistTransition({

@@ -6,8 +6,8 @@
 2. Escriba su usuario y contraseña. Para la demostración local, las cuentas ficticias están en el README. Las opciones disponibles dependen del rol asignado.
 3. En **Residentes**, consulte la lista y seleccione una persona para ver su expediente. Administración puede registrar residentes; el personal autorizado puede registrar visitas.
 4. En **Laboratorio** gestione las órdenes y resultados; en **Farmacia**, consulte existencias y registre entregas según su rol. Los medicamentos sin existencia se muestran como necesidad de reabastecimiento.
-5. En **Referencias**, consulte el seguimiento y realice la acción permitida para su rol y el estado actual. Vincular una visita exige introducir su identificador: el sistema todavía no comprueba que corresponda al paciente.
-6. En **Gastos médicos**, introduzca los identificadores, importes y descuentos, calcule y luego guarde la liquidación si corresponde. Actualmente debe comprobar manualmente que el paciente y la visita existan y coincidan.
+5. En **Referencias**, consulte el seguimiento y realice la acción permitida para su rol y el estado actual. Vincular una visita exige introducir el identificador de una visita ya registrada para el mismo residente. La vinculación no crea la visita.
+6. En **Gastos médicos**, introduzca los identificadores, importes y descuentos, calcule y luego guarde la liquidación si corresponde. El sistema comprueba que el residente exista y que la visita le pertenezca. El estado de cita se indica manualmente y todavía no se verifica con una referencia.
 7. Consulte los movimientos en **Caja** y los informes en **Reportes**, según los permisos de su cuenta. Para terminar, use **Cerrar sesión**.
 
 No utilice información personal real en esta demostración. La matriz de permisos está en `AUTENTICACION_Y_ROLES.md`.
