@@ -1,5 +1,11 @@
 # Historial de versiones
 
+## v1.0.1 — correcciones para pruebas SQA
+
+Esta versión vincula el autor de visitas y referencias con la sesión, ajusta las fechas a la hora de Guatemala y corrige los indicadores y mensajes de referencias. Coordinación conserva el acceso a totales financieros generales, mientras que el detalle queda reservado para Administración. Incluye pruebas adicionales, el diagrama de datos ampliado, el manual con capturas y los archivos editables del cronograma original.
+
+El cronograma conserva el corte del 26 de septiembre; los avances reales no han sido actualizados. La versión aún requiere una nueva revisión del SQA y no está preparada para datos reales.
+
 ## v1.0.0 — versión de pruebas
 
 Versión preparada para una nueva ronda de SQA. Incorpora correcciones a las observaciones realizadas sobre el commit `db117ea` y mejoras posteriores.
