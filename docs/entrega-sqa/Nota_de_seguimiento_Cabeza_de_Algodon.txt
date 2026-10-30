@@ -1,0 +1,14 @@
+PLANIFICACIÓN DEL SISTEMA CABEZA DE ALGODÓN
+Nota de seguimiento — corte del 29 de octubre de 2026
+
+El archivo editable Cronograma_Cabeza_Algodon_Avance_Estimado.pod fue actualizado en ProjectLibre a partir de la planificación existente. Los porcentajes son estimaciones basadas en las actividades y evidencias disponibles; no provienen de un registro de horas trabajadas.
+
+Criterio de seguimiento: 100 % indica que la actividad planificada cuenta con resultados disponibles, sin implicar la aprobación del sistema completo. 50 % indica que hay avances, pero la actividad sigue en curso; no es una medición exacta de la mitad del esfuerzo. 0 % indica que la actividad no está iniciada o que no se cuenta con evidencia suficiente para darla por realizada.
+
+El prototipo local, los módulos principales, la integración y las pruebas automatizadas cuentan con evidencia de implementación. El informe de SQA reportó 375 verificaciones aprobadas de 382 para el commit 5e10689; ese resultado corresponde a esa versión y no constituye la aprobación de una versión posterior. Se realizaron correcciones, pero se mantiene pendiente su nueva validación por SQA.
+
+Continúan pendientes o en proceso la revisión integral de seguridad, algunas pruebas de integración y aceptación, la prueba de usabilidad con usuarios, la validación de correcciones, el acceso público, la documentación y la preparación de la entrega. La aceptación final y la entrega no se consideran realizadas.
+
+Las fechas y duraciones forman parte de la planificación original y deben interpretarse como programadas, no como evidencia de cuándo se trabajó. ProjectLibre puede calcular campos denominados «reales» a partir de los porcentajes introducidos; esos valores automáticos no son una medición ni un registro comprobado de horas o fechas reales. Las anotaciones antiguas de la planificación son históricas y deben leerse junto con esta nota actualizada.
+
+Este documento acompaña al archivo .pod. El formato es editable en ProjectLibre, como alternativa a Microsoft Project; no es un archivo .mpp.
