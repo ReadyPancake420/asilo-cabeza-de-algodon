@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#1e5148" />
     <meta name="description" content="Sistema para Administración del Asilo de Ancianos Cabeza de Algodón" />
     <title>Cabeza de Algodón | Sistema administrativo</title>
-    <link rel="stylesheet" href="/styles.css?v=reports-4" />
-    <script src="/app.js?v=reports-4" defer></script>
+    <link rel="stylesheet" href="/styles.css?v=sqa-1" />
+    <script src="/app.js?v=sqa-1" defer></script>
   </head>
   <body>
     <section class="login-screen" id="login-screen">
@@ -21,12 +21,11 @@
       <div class="login-card">
         <div class="login-heading"><p class="login-kicker">Acceso</p><h1>Iniciar sesión</h1><p>Completa los campos para continuar.</p></div>
         <form id="login-form">
-          <label for="login-username"><span>Usuario</span><input id="login-username" name="username" autocomplete="username" placeholder="Ingresa tu usuario" value="administracion.demo" required /></label>
+          <label for="login-username"><span>Usuario</span><input id="login-username" name="username" autocomplete="username" placeholder="Ingresa tu usuario" required /></label>
           <label for="login-password"><span>Contraseña</span><span class="password-control"><input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Ingresa tu contraseña" required /><button id="toggle-password" type="button" aria-controls="login-password" aria-pressed="false" aria-label="Mostrar contraseña">Mostrar</button></span></label>
           <button class="primary-button full login-submit" id="login-submit" type="submit">Iniciar sesión</button>
           <p class="login-message" id="login-message" role="status" aria-live="polite"></p>
         </form>
-        <div class="demo-accounts"><strong>Accesos para pruebas SQA</strong><select id="demo-account" aria-label="Elegir una cuenta de prueba"><option value="administracion.demo" data-password="DemoAdministracion2026!">Administración</option><option value="medico.demo" data-password="DemoMedico2026!">Médico</option><option value="enfermeria.demo" data-password="DemoEnfermeria2026!">Enfermería</option><option value="coordinacion.demo" data-password="DemoCoordinacion2026!">Coordinación</option></select><small>Estas cuentas contienen únicamente datos ficticios.</small></div>
       </div>
     </section>
 

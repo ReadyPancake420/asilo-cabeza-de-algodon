@@ -123,6 +123,9 @@ Documentación adicional:
 - [`docs/CASOS_DE_PRUEBA_SQA.md`](docs/CASOS_DE_PRUEBA_SQA.md)
 - [`docs/AUTENTICACION_Y_ROLES.md`](docs/AUTENTICACION_Y_ROLES.md)
 - [`docs/ESTADO_MODULOS_Y_CRONOGRAMA.md`](docs/ESTADO_MODULOS_Y_CRONOGRAMA.md)
+- [`docs/ARQUITECTURA_Y_DATOS.md`](docs/ARQUITECTURA_Y_DATOS.md)
+- [`docs/MANUALES.md`](docs/MANUALES.md)
+- [`docs/VERSIONES.md`](docs/VERSIONES.md)
 
 ## Aseguramiento de calidad
 
@@ -147,6 +150,8 @@ docker-compose.yml            Orquestación del entorno completo
 ## Seguridad
 
 Las contraseñas de usuarios ficticios, las claves incluidas en `.env.example` y los valores predeterminados de Docker Compose son exclusivamente para la demostración local. No deben utilizarse en producción.
+
+En particular, `AUTH_JWT_SECRET` debe sustituirse por un valor secreto, único y suficientemente largo antes de cualquier despliegue real. Las cuentas de demostración también deben deshabilitarse o eliminarse; retirar el selector del formulario no elimina esas cuentas ni convierte esta configuración en segura para producción.
 
 Los archivos `.env`, claves privadas, dependencias, compilados y datos locales de MySQL están excluidos del repositorio. Las contraseñas se almacenan con `scrypt` y las API aceptan únicamente sesiones firmadas. Antes de un despliegue real deben configurarse secretos independientes, HTTPS, rotación de claves, recuperación de cuentas, respaldos y auditoría.
 

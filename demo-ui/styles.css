@@ -523,6 +523,8 @@ td small { margin-top: 3px; color: var(--muted); font-size: 8px; }
 .login-submit:hover { background: #1f55c2; }
 .login-submit:disabled { opacity: .65; cursor: wait; }
 .login-message { min-height: 18px; margin: -5px 0 0; color: #9a3840; font-size: 12px; line-height: 1.4; text-align: left; }
+.login-message[data-state="success"] { color: #216b45; }
+.login-message[data-state="pending"] { color: #52647a; }
 .demo-accounts { margin-top: 20px; padding: 14px; display: grid; gap: 8px; border: 1px solid #e3eafa; border-radius: 10px; background: #f6f9ff; }
 .demo-accounts strong { color: #344e78; font-size: 11px; }
 .demo-accounts select { min-height: 42px; font-size: 13px; }

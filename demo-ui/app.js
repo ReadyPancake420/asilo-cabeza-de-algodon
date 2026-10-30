@@ -200,13 +200,18 @@ function applyRoleAccess() {
   if (!canView(location.hash.slice(1))) navigate('dashboard');
 }
 
-function endSession(message = '') {
+function setLoginMessage(message, kind = 'error') {
+  $('#login-message').textContent = message;
+  $('#login-message').dataset.state = kind;
+}
+
+function endSession(message = '', kind = 'error') {
   state.token = null;
   state.user = null;
   sessionStorage.removeItem('asiloToken');
   $('.app-shell').classList.add('is-locked');
   $('#login-screen').hidden = false;
-  $('#login-message').textContent = message;
+  setLoginMessage(message, kind);
   $$('.modal').forEach((modal) => modal.open && modal.close());
 }
 
@@ -216,7 +221,7 @@ async function beginSession(token, user) {
   sessionStorage.setItem('asiloToken', token);
   $('#login-screen').hidden = true;
   $('.app-shell').classList.remove('is-locked');
-  $('#login-message').textContent = '';
+  setLoginMessage('');
   applyRoleAccess();
   await refreshAll();
 }
@@ -228,7 +233,7 @@ async function login(event) {
   const submit = $('#login-submit');
   const credentials = Object.fromEntries(new FormData(form));
   submit.disabled = true;
-  $('#login-message').textContent = 'Verificando…';
+  setLoginMessage('Verificando…', 'pending');
   try {
     const result = await requestJson(`${adminBase}/api/v1/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(credentials)
@@ -236,7 +241,7 @@ async function login(event) {
     await beginSession(result.data.token, result.data.user);
     showToast('Sesión iniciada', `Acceso de ${roleLabels[result.data.user.role] || result.data.user.role}.`);
   } catch (error) {
-    $('#login-message').textContent = error.message;
+    setLoginMessage(error.message);
   } finally {
     submit.disabled = false;
   }
@@ -384,6 +389,9 @@ async function loadAdministration() {
   renderPharmacy();
   renderCash();
   renderAdministrationMetrics();
+  renderReferrals();
+  renderDashboardReferrals();
+  renderDashboardAppointments();
   const reportResident = $('#report-resident');
   const selectedReportResident = reportResident.value;
   reportResident.innerHTML = '<option value="">Todos los residentes</option>' + residents.map((resident) =>
@@ -457,6 +465,10 @@ async function loadReferrals(filters = {}) {
   }
 }
 
+function residentName(id) {
+  return residents.find((resident) => Number(resident.id) === Number(id))?.name || `Paciente #${id}`;
+}
+
 function renderReferrals() {
   const tbody = $('#referrals-table');
   if (!state.referrals.length) {
@@ -464,7 +476,7 @@ function renderReferrals() {
     return;
   }
   tbody.innerHTML = state.referrals.map((referral) => `
-    <tr><td><strong>#${referral.id}</strong><small>${escapeHtml(referral.referringDoctorName)}</small></td><td>Paciente #${referral.patientId}</td><td>${escapeHtml(referral.specialty)}</td><td><strong>${formatDate(referral.scheduledDate)}</strong><small>${referral.scheduledTime || 'Hora pendiente'}</small></td><td>${badge(referral.status)}</td><td><button class="table-action" type="button" data-referral-id="${referral.id}">Seguimiento</button></td></tr>`).join('');
+    <tr><td><strong>#${referral.id}</strong><small>${escapeHtml(referral.referringDoctorName)}</small></td><td>${escapeHtml(residentName(referral.patientId))}</td><td>${escapeHtml(referral.specialty)}</td><td><strong>${formatDate(referral.scheduledDate)}</strong><small>${escapeHtml(referral.scheduledTime || 'Hora pendiente')}</small></td><td>${badge(referral.status)}</td><td><button class="table-action" type="button" data-referral-id="${referral.id}">Seguimiento</button></td></tr>`).join('');
 }
 
 function renderDashboardMetrics() {
@@ -485,7 +497,7 @@ function renderDashboardReferrals() {
     return;
   }
   container.innerHTML = items.map((referral) => `
-    <div class="activity-row"><div class="activity-person"><span class="avatar">P${referral.patientId}</span><span><strong>Paciente #${referral.patientId}</strong><small>Referencia #${referral.id}</small></span></div><div class="activity-meta"><strong>${escapeHtml(referral.specialty)}</strong><small>${escapeHtml(referral.specialistDoctorName || 'Especialista por asignar')}</small></div><button class="table-action" type="button" data-dashboard-referral="${referral.id}">${statusLabels[referral.status] || referral.status}</button></div>`).join('');
+    <div class="activity-row"><div class="activity-person"><span class="avatar">${initials(residentName(referral.patientId))}</span><span><strong>${escapeHtml(residentName(referral.patientId))}</strong><small>Referencia #${referral.id}</small></span></div><div class="activity-meta"><strong>${escapeHtml(referral.specialty)}</strong><small>${escapeHtml(referral.specialistDoctorName || 'Especialista por asignar')}</small></div><button class="table-action" type="button" data-dashboard-referral="${referral.id}">${statusLabels[referral.status] || referral.status}</button></div>`).join('');
 }
 
 function renderDashboardAppointments() {
@@ -501,7 +513,7 @@ function renderDashboardAppointments() {
   }
   container.innerHTML = items.map((item) => {
     const parsed = new Date(`${String(item.scheduledDate).slice(0,10)}T12:00:00`);
-    return `<div class="appointment-row"><span class="date-tile"><strong>${parsed.getDate()}</strong><small>${new Intl.DateTimeFormat('es-GT',{month:'short'}).format(parsed).toUpperCase()}</small></span><div><strong>Paciente #${item.patientId} · ${escapeHtml(item.specialty)}</strong><small>${escapeHtml(item.specialistDoctorName || 'Médico por asignar')}</small></div><time>${escapeHtml(item.scheduledTime || '--:--')}</time></div>`;
+    return `<div class="appointment-row"><span class="date-tile"><strong>${parsed.getDate()}</strong><small>${new Intl.DateTimeFormat('es-GT',{month:'short'}).format(parsed).toUpperCase()}</small></span><div><strong>${escapeHtml(residentName(item.patientId))} · ${escapeHtml(item.specialty)}</strong><small>${escapeHtml(item.specialistDoctorName || 'Médico por asignar')}</small></div><time>${escapeHtml(item.scheduledTime || '--:--')}</time></div>`;
   }).join('');
 }
 
@@ -533,7 +545,7 @@ function referralActionButtons(referral) {
 
 function renderReferralDetail(referral) {
   $('#referral-detail').innerHTML = `
-    <div class="detail-head"><div><p class="eyebrow">Referencia #${referral.id}</p><h2>Paciente #${referral.patientId}</h2><p>${escapeHtml(referral.specialty)}</p></div>${badge(referral.status)}</div>
+    <div class="detail-head"><div><p class="eyebrow">Referencia #${referral.id}</p><h2>${escapeHtml(residentName(referral.patientId))}</h2><p>${escapeHtml(referral.specialty)}</p></div>${badge(referral.status)}</div>
     <dl class="detail-data"><div><dt>Médico general</dt><dd>${escapeHtml(referral.referringDoctorName)}</dd></div><div><dt>Enfermero acompañante</dt><dd>${escapeHtml(referral.nurseName || 'Pendiente')}</dd></div><div><dt>Especialista</dt><dd>${escapeHtml(referral.specialistDoctorName || 'Pendiente')}</dd></div><div><dt>Fecha y hora</dt><dd>${formatDate(referral.scheduledDate)}${referral.scheduledTime ? ` · ${escapeHtml(referral.scheduledTime)}` : ''}</dd></div></dl>
     <div class="reason-box"><strong>Motivo de la referencia</strong><p>${escapeHtml(referral.reason)}</p></div>
     <div class="detail-actions">${referralActionButtons(referral) || '<span class="status-badge neutral">El flujo ha finalizado</span>'}</div>
@@ -733,7 +745,7 @@ async function saveExpense() {
   try {
     const result = await requestJson(`${expenseBase}/api/v1/liquidations`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     showToast('Liquidación guardada', `Se creó el registro #${result.data.id} por ${money.format(number(result.data.totalDue))}.`);
-    $('#medical-visit-id').value = Math.floor(Date.now() / 1000) % 100000000;
+    $('#medical-visit-id').value = '';
     state.calculation = null;
     $('#expense-message').textContent = 'Liquidación registrada. Puedes preparar una nueva operación.';
     await loadLiquidations();
@@ -960,7 +972,7 @@ function bindEvents() {
   $('#menu-button').addEventListener('click', () => { $('#sidebar').classList.add('is-open'); $('#sidebar-scrim').classList.add('is-open'); });
   $('#sidebar-scrim').addEventListener('click', () => { $('#sidebar').classList.remove('is-open'); $('#sidebar-scrim').classList.remove('is-open'); });
   $('#refresh-button').addEventListener('click', () => refreshAll(true));
-  $('#logout-button').addEventListener('click', () => endSession('Sesión cerrada correctamente.'));
+  $('#logout-button').addEventListener('click', () => endSession('Sesión cerrada correctamente.', 'success'));
   $('#login-form').addEventListener('submit', login);
   $('#report-print').addEventListener('click', () => window.print());
   $('#toggle-password').addEventListener('click', (event) => {
@@ -970,12 +982,6 @@ function bindEvents() {
     event.currentTarget.textContent = showing ? 'Ocultar' : 'Mostrar';
     event.currentTarget.setAttribute('aria-pressed', String(showing));
     event.currentTarget.setAttribute('aria-label', showing ? 'Ocultar contraseña' : 'Mostrar contraseña');
-  });
-  $('#demo-account').addEventListener('change', (event) => {
-    const option = event.currentTarget.selectedOptions[0];
-    $('#login-username').value = option.value;
-    $('#login-password').value = option.dataset.password || '';
-    $('#login-message').textContent = '';
   });
   $('#resident-search').addEventListener('input', renderResidents);
   $('#resident-filter').addEventListener('change', renderResidents);
@@ -1001,11 +1007,9 @@ async function initialize() {
   renderLaboratory();
   renderPharmacy();
   renderCash();
-  $('#medical-visit-id').value = Math.floor(Date.now() / 1000) % 100000000;
   addExpenseItem('laboratory', { name: 'Hematología', quantity: 1, unitPrice: 100 });
   addExpenseItem('laboratory', { name: 'Glucosa', quantity: 1, unitPrice: 75 });
   addExpenseItem('pharmacy', { name: 'Losartán 50 mg', quantity: 2, unitPrice: 45 });
-  $('#demo-account').dispatchEvent(new Event('change'));
   const initialView = location.hash.slice(1);
   navigate(sectionLabels[initialView] ? initialView : 'dashboard', false);
   const savedToken = sessionStorage.getItem('asiloToken');

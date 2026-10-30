@@ -10,11 +10,16 @@ export const administrationRouter = Router();
 
 const idSchema = z.coerce.number().int().positive();
 const optionalId = z.union([z.coerce.number().int().positive(), z.literal(''), z.null()]).optional();
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}, 'La fecha no existe');
 
-const residentSchema = z.object({
+export const residentSchema = z.object({
   name: z.string().trim().min(3).max(150),
-  birthDate: dateSchema,
+  birthDate: dateSchema.refine((value) => value <= new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Guatemala', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date()), 'La fecha de nacimiento no puede ser futura'),
   room: z.string().trim().min(1).max(20),
   condition: z.string().trim().min(2).max(180),
   family: z.string().trim().min(3).max(150),

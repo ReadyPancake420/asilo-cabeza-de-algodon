@@ -1,5 +1,11 @@
 # Estado de módulos comparado con el cronograma
 
+## Actualización de seguimiento: 29 de octubre de 2026
+
+El SQA informó una primera ejecución sobre el commit `db117ea`, con 287 verificaciones aprobadas de 297. Posteriormente se corrigieron observaciones de validación y presentación, y se añadieron pruebas automáticas. Estas correcciones requieren una nueva ejecución del SQA sobre el commit que las incluya. Los reportes se ampliaron respecto al corte anterior.
+
+Siguen pendientes la validación automática entre referencias, visitas y liquidaciones; la aceptación y usabilidad; y el acceso público seguro. Las fechas y el porcentaje real del cronograma en Microsoft Project deben actualizarse con el responsable del proyecto a partir de las horas efectivamente trabajadas; este seguimiento no inventa tiempos ni modifica el archivo de planificación.
+
 **Proyecto:** Sistema para el Asilo Cabeza de Algodón  
 **Curso:** Análisis de Sistemas II  
 **Fecha de corte:** 10 de octubre de 2026
