@@ -248,3 +248,18 @@ administrationRouter.get('/reports/summary', allowRoles('COORDINACION', 'ADMINIS
   ]);
   response.json({ data: { residents: residentTotals[0], laboratory: labTotals[0], pharmacy: stockTotals[0], cash: cashTotals[0] } });
 }));
+
+// Datos de reportes: lectura limitada a los mismos roles autorizados para el módulo.
+administrationRouter.get('/reports/data', allowRoles('COORDINACION', 'ADMINISTRACION'), asyncHandler(async (_request, response) => {
+  const [[movements], [deliveries]] = await Promise.all([
+    pool.execute<RowDataPacket[]>(`SELECT id, DATE_FORMAT(movement_date, '%Y-%m-%d') AS date,
+      concept, source, type, category, amount, resident_id AS residentId
+      FROM cash_movements ORDER BY movement_date DESC, id DESC`),
+    pool.execute<RowDataPacket[]>(`SELECT d.id, d.resident_id AS residentId, r.full_name AS residentName,
+      d.medical_visit_id AS medicalVisitId, m.name AS medicine, d.quantity, d.unit_price AS unitPrice,
+      d.prescribed_by AS prescribedBy, d.notes, DATE_FORMAT(d.delivered_at, '%Y-%m-%d') AS date
+      FROM medication_deliveries d JOIN residents r ON r.id = d.resident_id
+      JOIN medicines m ON m.id = d.medicine_id ORDER BY d.delivered_at DESC, d.id DESC`)
+  ]);
+  response.set('Cache-Control', 'no-store').json({ data: { movements, deliveries } });
+}));

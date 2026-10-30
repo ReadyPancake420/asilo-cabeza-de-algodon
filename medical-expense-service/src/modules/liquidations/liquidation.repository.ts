@@ -124,6 +124,13 @@ export async function listLiquidations(filters: LiquidationFilters): Promise<Row
   return rows;
 }
 
+export async function listLiquidationsForReport(): Promise<RowDataPacket[]> {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    `${SELECT_SUMMARY} ORDER BY created_at DESC, id DESC`
+  );
+  return rows;
+}
+
 export async function voidLiquidation(id: number, reason: string): Promise<boolean> {
   const [result] = await pool.execute<ResultSetHeader>(
     `UPDATE medical_liquidations

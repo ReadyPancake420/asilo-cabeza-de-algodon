@@ -314,6 +314,10 @@ function renderPharmacy() {
   const filtered = medicines.filter((medicine) => medicine.name.toLowerCase().includes(query));
   $('#pharmacy-table').innerHTML = filtered.map((medicine) => `
     <tr><td><strong>${escapeHtml(medicine.name)}</strong><small>Código MED-${String(medicines.indexOf(medicine) + 1).padStart(3, '0')}</small></td><td>${escapeHtml(medicine.presentation)}</td><td><strong>${medicine.stock} unidades</strong><div class="stock-meter ${medicine.stock < 20 ? 'low' : ''}" style="--stock:${medicine.stock}%"><i></i></div></td><td>${money.format(medicine.price)}</td><td>${badge(medicine.status)}</td></tr>`).join('');
+  const alerts = medicines.filter((medicine) => ['Reabastecer', 'Existencia baja'].includes(medicine.status));
+  $('#stock-alert-list').innerHTML = alerts.length ? alerts.map((medicine) =>
+    `<div><span class="alert-icon ${medicine.status === 'Reabastecer' ? 'coral' : 'amber'}">!</span><p><strong>${escapeHtml(medicine.name)}</strong><small>Quedan ${number(medicine.stock)} unidades · ${escapeHtml(medicine.status)}</small></p></div>`
+  ).join('') : '<p>No hay alertas de inventario.</p>';
 }
 
 function renderCash() {
@@ -380,6 +384,11 @@ async function loadAdministration() {
   renderPharmacy();
   renderCash();
   renderAdministrationMetrics();
+  const reportResident = $('#report-resident');
+  const selectedReportResident = reportResident.value;
+  reportResident.innerHTML = '<option value="">Todos los residentes</option>' + residents.map((resident) =>
+    `<option value="${resident.id}">${escapeHtml(resident.name)}</option>`).join('');
+  reportResident.value = selectedReportResident;
   applyRoleAccess();
   const residentExists = residents.some((item) => item.id === state.selectedResidentId);
   if (!residentExists && residents[0]) state.selectedResidentId = residents[0].id;
@@ -481,9 +490,15 @@ function renderDashboardReferrals() {
 
 function renderDashboardAppointments() {
   const container = $('#dashboard-appointments');
-  const scheduled = state.referrals.filter((item) => item.scheduledDate).slice(0, 3);
-  const fallback = [{ patientId: 18, specialty: 'Endocrinología', specialistDoctorName: 'Dr. Estuardo Ruiz', scheduledDate: '2026-09-17', scheduledTime: '09:00' }];
-  const items = scheduled.length ? scheduled : fallback;
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Guatemala', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const items = state.referrals
+    .filter((item) => item.status === 'APPOINTMENT_SCHEDULED' && item.scheduledDate && String(item.scheduledDate).slice(0, 10) >= today)
+    .sort((a, b) => `${a.scheduledDate}T${a.scheduledTime || '00:00'}`.localeCompare(`${b.scheduledDate}T${b.scheduledTime || '00:00'}`))
+    .slice(0, 3);
+  if (!items.length) {
+    container.innerHTML = '<p class="empty-cell">No hay citas programadas.</p>';
+    return;
+  }
   container.innerHTML = items.map((item) => {
     const parsed = new Date(`${String(item.scheduledDate).slice(0,10)}T12:00:00`);
     return `<div class="appointment-row"><span class="date-tile"><strong>${parsed.getDate()}</strong><small>${new Intl.DateTimeFormat('es-GT',{month:'short'}).format(parsed).toUpperCase()}</small></span><div><strong>Paciente #${item.patientId} · ${escapeHtml(item.specialty)}</strong><small>${escapeHtml(item.specialistDoctorName || 'Médico por asignar')}</small></div><time>${escapeHtml(item.scheduledTime || '--:--')}</time></div>`;
@@ -528,13 +543,12 @@ function renderReferralDetail(referral) {
 
 function workflowConfig(action) {
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-  const uniqueVisit = Math.floor(Date.now() / 1000) % 100000000;
   const configs = {
     nurse: { kicker: 'Asignación del asilo', title: 'Asignar enfermero acompañante', description: 'El enfermero será responsable de acompañar al paciente.', submit: 'Asignar enfermero', fields: `<div class="form-grid two"><label><span>ID del enfermero *</span><input name="nurseId" type="number" min="1" value="8" required></label><label><span>Nombre completo *</span><input name="nurseName" minlength="3" value="Enfermero Carlos Díaz" required></label></div>` },
     schedule: { kicker: 'Módulo de la fundación', title: 'Programar atención con especialista', description: 'Asigna médico, fecha y hora para la consulta.', submit: 'Guardar programación', fields: `<div class="form-grid two"><label><span>ID del especialista *</span><input name="specialistDoctorId" type="number" min="1" value="35" required></label><label><span>Nombre del especialista *</span><input name="specialistDoctorName" minlength="3" value="Dra. María López" required></label><label><span>Fecha *</span><input name="scheduledDate" type="date" value="${tomorrow}" required></label><label><span>Hora *</span><input name="scheduledTime" type="time" value="10:30" required></label></div>` },
     transit: { kicker: 'Traslado del paciente', title: 'Iniciar traslado', description: 'La referencia cambiará al estado “En traslado”.', submit: 'Confirmar traslado', fields: '<p class="reason-box">Confirma que el paciente salió del asilo acompañado por el enfermero asignado.</p>' },
     attended: { kicker: 'Confirmación médica', title: 'Marcar paciente atendido', description: 'El especialista ya recibió y evaluó al paciente.', submit: 'Confirmar atención', fields: '<p class="reason-box">Después de confirmar, la solicitud podrá convertirse en una visita médica.</p>' },
-    convert: { kicker: 'Creación de ficha médica', title: 'Convertir en visita médica', description: 'Relaciona la referencia atendida con una nueva visita.', submit: 'Crear relación', fields: `<div class="form-grid"><label><span>ID de la nueva visita médica *</span><input name="medicalVisitId" type="number" min="1" value="${uniqueVisit}" required></label></div>` },
+    convert: { kicker: 'Vinculación de referencia', title: 'Relacionar con visita médica', description: 'Registra el identificador de una visita existente. Esta acción no crea ni verifica la visita en el expediente.', submit: 'Guardar relación', fields: '<div class="form-grid"><label><span>ID de la visita médica existente *</span><input name="medicalVisitId" type="number" min="1" required></label></div>' },
     cancel: { kicker: 'Cambio de estado', title: 'Cancelar referencia', description: 'El motivo quedará guardado en la trazabilidad.', submit: 'Cancelar referencia', fields: '<div class="form-grid"><label><span>Motivo de cancelación *</span><textarea name="reason" minlength="5" maxlength="250" rows="3" required>La cita fue cancelada por indicación médica.</textarea></label></div>' }
   };
   return configs[action];
@@ -855,14 +869,69 @@ async function refreshAll(showMessage = false) {
   }
 }
 
+function reportTable(headers, rows) {
+  if (!rows.length) return '<p class="report-empty">No hay registros para los filtros seleccionados.</p>';
+  return `<div class="table-wrap"><table><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell ?? '—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+async function generateReport(kind) {
+  const from = $('#report-from').value;
+  const to = $('#report-to').value;
+  const residentId = $('#report-resident').value;
+  if (from && to && from > to) {
+    showToast('Rango inválido', 'La fecha inicial debe ser anterior o igual a la fecha final.', true);
+    return;
+  }
+  const titles = { costs: 'Costos de citas por paciente', medical: 'Análisis médico por paciente', charges: 'Cobros por rango de fecha', foundation: 'Pagos a la fundación', income: 'Donaciones y cobros', services: 'Exámenes y medicamentos' };
+  if (!titles[kind]) return;
+  const result = $('#report-result');
+  result.hidden = false;
+  $('#report-title').textContent = titles[kind];
+  $('#report-period').textContent = `${residentId ? (residents.find((item) => String(item.id) === residentId)?.name || `Residente #${residentId}`) : 'Todos los residentes'} · ${from ? formatDate(from) : 'Sin fecha inicial'} a ${to ? formatDate(to) : 'Sin fecha final'}`;
+  $('#report-content').innerHTML = '<p class="report-empty">Cargando información…</p>';
+  const matches = (id, date) => (!residentId || String(id ?? '') === residentId) && (!from || (date && String(date).slice(0, 10) >= from)) && (!to || (date && String(date).slice(0, 10) <= to));
+  const nameFor = (id) => residents.find((item) => String(item.id) === String(id))?.name || (id ? `Residente #${id} (no encontrado)` : 'Sin residente asociado');
+  const sum = (items, key) => items.reduce((total, item) => total + Math.round(number(item[key]) * 100), 0) / 100;
+  try {
+    let html = '';
+    if (kind === 'costs' || kind === 'charges') {
+      const liquidations = (await requestJson(`${expenseBase}/api/v1/liquidations/report`)).data.filter((item) => item.status === 'FINALIZED' && matches(item.patientId, item.createdAt));
+      if (kind === 'costs') {
+        html = '<p>Se incluyen liquidaciones finalizadas. Las fechas corresponden a su registro.</p>' + reportTable(['Fecha', 'Residente', 'Visita', 'Consulta', 'Laboratorio', 'Farmacia', 'Descuento', 'Total'], liquidations.map((item) => [formatDate(item.createdAt), nameFor(item.patientId), `#${item.medicalVisitId}`, money.format(number(item.consultationAmount)), money.format(number(item.laboratorySubtotal)), money.format(number(item.pharmacySubtotal)), money.format(number(item.discountAmount)), money.format(number(item.totalDue))])) + `<p class="report-total">Total de liquidaciones: ${money.format(sum(liquidations, 'totalDue'))}</p>`;
+      } else {
+        const data = (await requestJson(`${adminBase}/api/v1/reports/data`)).data;
+        const fees = data.movements.filter((item) => item.type === 'Entrada' && item.category === 'Cuota familiar' && matches(item.residentId, item.date));
+        html = '<p>Las cuotas cobradas y las liquidaciones se muestran por separado para no sumar dos veces un posible pago.</p><h3>Cuotas familiares registradas</h3>' + reportTable(['Fecha', 'Residente', 'Concepto', 'Responsable', 'Monto'], fees.map((item) => [formatDate(item.date), nameFor(item.residentId), item.concept, item.source, money.format(number(item.amount))])) + `<p class="report-total">Cuotas recibidas: ${money.format(sum(fees, 'amount'))}</p><h3>Liquidaciones médicas finalizadas</h3>` + reportTable(['Fecha de registro', 'Residente', 'Visita', 'Total'], liquidations.map((item) => [formatDate(item.createdAt), nameFor(item.patientId), `#${item.medicalVisitId}`, money.format(number(item.totalDue))])) + `<p class="report-total">Liquidaciones: ${money.format(sum(liquidations, 'totalDue'))}</p>`;
+      }
+    } else if (kind === 'medical') {
+      const visits = (await requestJson(`${adminBase}/api/v1/medical-visits`)).data.filter((item) => matches(item.residentId, item.visitDate));
+      html = '<p>Información clínica registrada en visitas. El sistema no registra un campo independiente de motivo de ingreso.</p>' + reportTable(['Fecha', 'Residente', 'Atención', 'Médico', 'Motivo', 'Diagnóstico', 'Tratamiento'], visits.map((item) => [formatDate(item.visitDate), item.residentName, item.visitType, item.doctorName, item.reason, item.diagnosis, item.treatment || 'Sin registro']));
+    } else {
+      const data = (await requestJson(`${adminBase}/api/v1/reports/data`)).data;
+      if (kind === 'foundation' || kind === 'income') {
+        const movements = data.movements.filter((item) => matches(item.residentId, item.date) && (kind === 'foundation' ? item.type === 'Salida' && item.category === 'Pago fundación' : item.type === 'Entrada'));
+        html = `<p>${kind === 'foundation' ? 'Se muestran pagos de caja clasificados como pago a fundación; no se presume el desglose que no esté registrado.' : 'Se muestran las entradas de caja registradas por categoría y procedencia.'}</p>` + reportTable(['Fecha', 'Residente', 'Categoría', 'Concepto', 'Procedencia / responsable', 'Monto'], movements.map((item) => [formatDate(item.date), nameFor(item.residentId), item.category, item.concept, item.source, money.format(number(item.amount))])) + `<p class="report-total">Total: ${money.format(sum(movements, 'amount'))}</p>`;
+      } else {
+        const orders = (await requestJson(`${adminBase}/api/v1/laboratory-orders`)).data.filter((item) => matches(item.patientId, item.date));
+        const deliveries = data.deliveries.filter((item) => matches(item.residentId, item.date));
+        html = '<p>Se muestran las órdenes de laboratorio y las entregas de medicamentos registradas.</p><h3>Órdenes de laboratorio</h3>' + reportTable(['Fecha programada', 'Residente', 'Exámenes', 'Médico', 'Estado'], orders.map((item) => [formatDate(item.date), item.patient, item.exams, item.doctor, item.status])) + '<h3>Entregas de medicamentos</h3>' + reportTable(['Fecha de entrega', 'Residente', 'Medicamento', 'Cantidad', 'Prescrito por'], deliveries.map((item) => [formatDate(item.date), item.residentName, item.medicine, item.quantity, item.prescribedBy]));
+      }
+    }
+    $('#report-content').innerHTML = html;
+    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    $('#report-content').innerHTML = `<p class="report-empty">No se pudo generar el informe: ${escapeHtml(error.message)}</p>`;
+    showToast('No se pudo generar el informe', error.message, true);
+  }
+}
+
 function handleDemoAction(action, element) {
   if (!canRunAction(action)) {
     showToast('Acción no permitida', 'Su rol tiene acceso de consulta, pero no puede modificar este módulo.', true);
     return;
   }
-  if (action === 'export' || action === 'report') {
-    showToast('Reporte preparado', 'Se abrió la vista de impresión para guardar como PDF.');
-    setTimeout(() => window.print(), 350);
+  if (action === 'report') {
+    generateReport(element?.dataset.report);
     return;
   }
   openAdminAction(action, element?.dataset.labId || null);
@@ -893,6 +962,7 @@ function bindEvents() {
   $('#refresh-button').addEventListener('click', () => refreshAll(true));
   $('#logout-button').addEventListener('click', () => endSession('Sesión cerrada correctamente.'));
   $('#login-form').addEventListener('submit', login);
+  $('#report-print').addEventListener('click', () => window.print());
   $('#toggle-password').addEventListener('click', (event) => {
     const input = $('#login-password');
     const showing = input.type === 'password';
